@@ -1,0 +1,16 @@
+# Base Postgres locale pour le développement : `docker compose up -d`
+services:
+  postgres:
+    image: postgres:16
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: langues
+      POSTGRES_PASSWORD: langues
+      POSTGRES_DB: langues
+    ports:
+      - '5432:5432'
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+
+volumes:
+  pgdata:

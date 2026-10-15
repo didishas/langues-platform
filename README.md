@@ -10,8 +10,11 @@ Next.js 16 (App Router, TypeScript strict) · Payload CMS 3 · PostgreSQL · pol
 
 ## Démarrer en local
 
+Il faut Node 20+, pnpm et Docker (ou un Postgres déjà installé).
+
 ```bash
-cp .env.example .env              # puis renseigner DATABASE_URL et PAYLOAD_SECRET
+cp .env.example .env              # puis remplacer PAYLOAD_SECRET par une longue chaîne aléatoire
+docker compose up -d              # base Postgres locale
 pnpm install
 SEED_ADMIN_EMAIL=… SEED_ADMIN_PASSWORD=… pnpm seed   # contenu de départ + compte de Catherine
 pnpm dev
