@@ -8,13 +8,18 @@ export function toLines(prestations: PrestationInput[]): InvoiceLine[] {
     if (!Number.isFinite(p.quantity) || p.quantity <= 0) {
       throw new Error(`Quantité invalide pour la prestation ${p.id}`)
     }
+    const discountPercent = p.discountPercent ?? 0
+    if (!Number.isFinite(discountPercent) || discountPercent < 0 || discountPercent > 100) {
+      throw new Error(`Remise invalide pour la prestation ${p.id}`)
+    }
     return {
       prestationId: p.id,
       description: p.description,
       date: p.date,
       quantity: p.quantity,
       unitPriceCents: p.unitPriceCents,
-      totalCents: Math.round(p.quantity * p.unitPriceCents),
+      discountPercent,
+      totalCents: Math.round((p.quantity * p.unitPriceCents * (100 - discountPercent)) / 100),
     }
   })
 }

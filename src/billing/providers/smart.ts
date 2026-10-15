@@ -55,7 +55,7 @@ const csvCell = (value: string | number) => {
  * Séparateur « ; » et montants en euros avec virgule, pour une ouverture directe dans un tableur belge.
  */
 export function toSmartCsv(drafts: InvoiceDraft[]): string {
-  const header = ['client', 'email', 'type_client', 'tva_client', 'date_prestation', 'description', 'quantite', 'prix_unitaire_eur', 'total_eur']
+  const header = ['client', 'email', 'type_client', 'tva_client', 'date_prestation', 'description', 'quantite', 'prix_unitaire_eur', 'remise_pct', 'total_eur']
   const euros = (cents: number) => (cents / 100).toFixed(2).replace('.', ',')
   const rows = drafts.flatMap((d) =>
     d.lines.map((l) =>
@@ -68,6 +68,7 @@ export function toSmartCsv(drafts: InvoiceDraft[]): string {
         l.description,
         l.quantity,
         euros(l.unitPriceCents),
+        l.discountPercent,
         euros(l.totalCents),
       ]
         .map(csvCell)

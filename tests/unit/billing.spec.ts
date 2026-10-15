@@ -94,6 +94,21 @@ describe('DirectProvider', () => {
     expect(draft.totalCents).toBe(8000)
   })
 
+  it('applique une remise ligne par ligne (ex. deuxième cours à moitié prix)', () => {
+    const draft = createDirectProvider(null).prepareInvoice(
+      { ...input, prestations: [input.prestations[0], { ...input.prestations[1], discountPercent: 50 }] },
+      settings,
+    )
+    expect(draft.lines[1].totalCents).toBe(2000)
+    expect(draft.totalCents).toBe(6000)
+    expect(() =>
+      createDirectProvider(null).prepareInvoice(
+        { ...input, prestations: [{ ...input.prestations[0], discountPercent: 120 }] },
+        settings,
+      ),
+    ).toThrow()
+  })
+
   it('applique la TVA en régime standard, sans mention', () => {
     const draft = createDirectProvider(null).prepareInvoice(input, { ...settings, vatRegime: 'standard' })
     expect(draft.vatCents).toBe(1680)

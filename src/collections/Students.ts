@@ -68,6 +68,14 @@ export const Students: CollectionConfig = {
     },
     { ...cefrLevelField(), access: staffField },
     {
+      name: 'familyOf',
+      label: 'Proche d’un autre élève',
+      type: 'relationship',
+      relationTo: 'students',
+      access: staffField,
+      admin: { description: 'Par exemple l’enfant d’une élève, pour appliquer la réduction famille.' },
+    },
+    {
       type: 'collapsible',
       label: 'Élève mineur',
       fields: [

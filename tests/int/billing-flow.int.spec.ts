@@ -114,6 +114,23 @@ describe('facturation de bout en bout (base de test)', () => {
   })
 })
 
+describe('réductions', () => {
+  it('recopie le pourcentage de la réduction choisie et l’applique sur la facture', async () => {
+    await payload.updateGlobal({ slug: 'billing-settings', data: { activeProvider: 'direct' } })
+    const half = await payload.create({
+      collection: 'discounts',
+      data: { title: '2e cours à moitié prix', type: 'extra_session', percent: 50 },
+    })
+    const p = await payload.create({
+      collection: 'prestations',
+      data: { student: studentId, date: `${year}-10-02`, description: 'Cours individuel', quantity: 1, unitPrice: 30, discount: half.id } as any,
+    })
+    expect(p.discountPercent).toBe(50)
+    const draft = await prepareDraftInvoice(payload, { studentId, prestationIds: [p.id] })
+    expect(draft.totalCents).toBe(1500)
+  })
+})
+
 describe('réservations', () => {
   it('refuse une réservation sur un créneau complet', async () => {
     const slot = await payload.create({

@@ -51,6 +51,7 @@ export function draftToInvoiceData(draft: InvoiceDraft, studentId: string | numb
       date: l.date,
       quantity: l.quantity,
       unitPriceCents: l.unitPriceCents,
+      discountPercent: l.discountPercent,
       lineTotalCents: l.totalCents,
     })),
     subtotalCents: draft.subtotalCents,
@@ -82,6 +83,7 @@ const toInput = (p: Record<string, any>): PrestationInput => ({
   date: String(p.date).slice(0, 10),
   quantity: p.quantity ?? 1,
   unitPriceCents: p.unitPriceCents ?? 0,
+  discountPercent: p.discountPercent ?? 0,
 })
 
 /**

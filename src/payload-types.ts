@@ -70,6 +70,7 @@ export interface Config {
   collections: {
     languages: Language;
     offers: Offer;
+    discounts: Discount;
     students: Student;
     'trial-requests': TrialRequest;
     slots: Slot;
@@ -88,6 +89,7 @@ export interface Config {
   collectionsSelect: {
     languages: LanguagesSelect<false> | LanguagesSelect<true>;
     offers: OffersSelect<false> | OffersSelect<true>;
+    discounts: DiscountsSelect<false> | DiscountsSelect<true>;
     students: StudentsSelect<false> | StudentsSelect<true>;
     'trial-requests': TrialRequestsSelect<false> | TrialRequestsSelect<true>;
     slots: SlotsSelect<false> | SlotsSelect<true>;
@@ -227,12 +229,16 @@ export interface Media {
 export interface Offer {
   id: number;
   title: string;
-  kind: 'single' | 'pack' | 'subscription';
-  format: 'individual' | 'group';
-  durationMinutes: number;
+  kind: 'single' | 'pack' | 'subscription' | 'per_unit';
+  format: 'individual' | 'group' | 'parent_child';
+  durationMinutes?: number | null;
   sessionsCount?: number | null;
   /**
-   * En euros, pour la formule entière (toutes séances comprises).
+   * Par exemple « page » pour l’aide aux devoirs.
+   */
+  unitLabel?: string | null;
+  /**
+   * En euros : prix de la séance, du forfait entier, du mois ou de l’unité selon le type.
    */
   price: number;
   priceCents?: number | null;
@@ -240,6 +246,29 @@ export interface Offer {
    * Laisser vide si la formule vaut pour toutes les langues.
    */
   languages?: (number | Language)[] | null;
+  /**
+   * Par exemple « Prononciation et accent » ou « Lecture, écriture, expression orale ».
+   */
+  focus?: string | null;
+  levelFrom?: ('A1' | 'A2' | 'B1' | 'B2' | 'C1' | 'C2') | null;
+  levelTo?: ('A1' | 'A2' | 'B1' | 'B2' | 'C1' | 'C2') | null;
+  resourcesIncluded?: boolean | null;
+  description?: string | null;
+  order?: number | null;
+  published?: boolean | null;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "discounts".
+ */
+export interface Discount {
+  id: number;
+  title: string;
+  type: 'multi_language' | 'extra_session' | 'family' | 'monthly' | 'other';
+  percent: number;
+  minLanguages?: number | null;
   description?: string | null;
   order?: number | null;
   published?: boolean | null;
@@ -259,6 +288,10 @@ export interface Student {
   preferredLocale?: ('fr' | 'en' | 'he') | null;
   languages?: (number | Language)[] | null;
   level?: ('A1' | 'A2' | 'B1' | 'B2' | 'C1' | 'C2') | null;
+  /**
+   * Par exemple l’enfant d’une élève, pour appliquer la réduction famille.
+   */
+  familyOf?: (number | null) | Student;
   isMinor?: boolean | null;
   guardian?: {
     name?: string | null;
@@ -360,6 +393,11 @@ export interface Prestation {
    */
   unitPrice: number;
   unitPriceCents?: number | null;
+  discount?: (number | null) | Discount;
+  /**
+   * Reprise de la réduction choisie, modifiable au cas par cas.
+   */
+  discountPercent?: number | null;
   booking?: (number | null) | Booking;
   status?: ('to_invoice' | 'invoiced') | null;
   invoice?: (number | null) | Invoice;
@@ -397,6 +435,7 @@ export interface Invoice {
          */
         unitPrice?: number | null;
         unitPriceCents?: number | null;
+        discountPercent?: number | null;
         /**
          * En euros
          */
@@ -502,6 +541,10 @@ export interface PayloadLockedDocument {
     | ({
         relationTo: 'offers';
         value: number | Offer;
+      } | null)
+    | ({
+        relationTo: 'discounts';
+        value: number | Discount;
       } | null)
     | ({
         relationTo: 'students';
@@ -618,9 +661,29 @@ export interface OffersSelect<T extends boolean = true> {
   format?: T;
   durationMinutes?: T;
   sessionsCount?: T;
+  unitLabel?: T;
   price?: T;
   priceCents?: T;
   languages?: T;
+  focus?: T;
+  levelFrom?: T;
+  levelTo?: T;
+  resourcesIncluded?: T;
+  description?: T;
+  order?: T;
+  published?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "discounts_select".
+ */
+export interface DiscountsSelect<T extends boolean = true> {
+  title?: T;
+  type?: T;
+  percent?: T;
+  minLanguages?: T;
   description?: T;
   order?: T;
   published?: T;
@@ -639,6 +702,7 @@ export interface StudentsSelect<T extends boolean = true> {
   preferredLocale?: T;
   languages?: T;
   level?: T;
+  familyOf?: T;
   isMinor?: T;
   guardian?:
     | T
@@ -730,6 +794,8 @@ export interface PrestationsSelect<T extends boolean = true> {
   quantity?: T;
   unitPrice?: T;
   unitPriceCents?: T;
+  discount?: T;
+  discountPercent?: T;
   booking?: T;
   status?: T;
   invoice?: T;
@@ -764,6 +830,7 @@ export interface InvoicesSelect<T extends boolean = true> {
         quantity?: T;
         unitPrice?: T;
         unitPriceCents?: T;
+        discountPercent?: T;
         lineTotal?: T;
         lineTotalCents?: T;
         id?: T;

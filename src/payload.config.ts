@@ -9,6 +9,7 @@ import sharp from 'sharp'
 import { fileURLToPath } from 'url'
 
 import { Bookings } from './collections/Bookings'
+import { Discounts } from './collections/Discounts'
 import { InvoiceCounters } from './collections/InvoiceCounters'
 import { Invoices } from './collections/Invoices'
 import { Languages } from './collections/Languages'
@@ -48,6 +49,7 @@ export default buildConfig({
   collections: [
     Languages,
     Offers,
+    Discounts,
     Students,
     TrialRequests,
     Slots,

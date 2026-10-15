@@ -43,6 +43,8 @@ export interface PrestationInput {
   date: string
   quantity: number
   unitPriceCents: number
+  /** Remise en pourcentage (réduction multi-langues, famille, 2e séance…), 0 par défaut. */
+  discountPercent?: number
 }
 
 export interface InvoiceLine {
@@ -51,6 +53,7 @@ export interface InvoiceLine {
   date: string
   quantity: number
   unitPriceCents: number
+  discountPercent: number
   totalCents: number
 }
 

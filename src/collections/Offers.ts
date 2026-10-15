@@ -1,7 +1,7 @@
 import type { CollectionConfig } from 'payload'
 
 import { publishedOrStaff, staffOnly } from '@/access'
-import { euroAmountFields } from '@/fields'
+import { cefrLevelField, euroAmountFields } from '@/fields'
 
 export const Offers: CollectionConfig = {
   slug: 'offers',
@@ -33,6 +33,7 @@ export const Offers: CollectionConfig = {
             { label: 'Séance à l’unité', value: 'single' },
             { label: 'Forfait de séances', value: 'pack' },
             { label: 'Abonnement mensuel', value: 'subscription' },
+            { label: 'Tarif à l’unité de travail (ex. par page)', value: 'per_unit' },
           ],
           admin: { width: '33%' },
         },
@@ -45,6 +46,7 @@ export const Offers: CollectionConfig = {
           options: [
             { label: 'Individuel', value: 'individual' },
             { label: 'Groupe', value: 'group' },
+            { label: 'Atelier parent + enfant', value: 'parent_child' },
           ],
           admin: { width: '33%' },
         },
@@ -52,10 +54,9 @@ export const Offers: CollectionConfig = {
           name: 'durationMinutes',
           label: 'Durée d’une séance (minutes)',
           type: 'number',
-          required: true,
           min: 15,
-          defaultValue: 60,
-          admin: { width: '33%' },
+          defaultValue: 90,
+          admin: { width: '33%', condition: (_, sibling) => sibling?.kind !== 'per_unit' },
         },
       ],
     },
@@ -64,11 +65,21 @@ export const Offers: CollectionConfig = {
       label: 'Nombre de séances incluses',
       type: 'number',
       min: 1,
-      admin: { condition: (_, sibling) => sibling?.kind !== 'single' },
+      admin: { condition: (_, sibling) => sibling?.kind === 'pack' || sibling?.kind === 'subscription' },
+    },
+    {
+      name: 'unitLabel',
+      label: 'Unité facturée',
+      type: 'text',
+      localized: true,
+      admin: {
+        condition: (_, sibling) => sibling?.kind === 'per_unit',
+        description: 'Par exemple « page » pour l’aide aux devoirs.',
+      },
     },
     ...euroAmountFields('price', 'Prix', {
       required: true,
-      description: 'En euros, pour la formule entière (toutes séances comprises).',
+      description: 'En euros : prix de la séance, du forfait entier, du mois ou de l’unité selon le type.',
     }),
     {
       name: 'languages',
@@ -77,6 +88,26 @@ export const Offers: CollectionConfig = {
       relationTo: 'languages',
       hasMany: true,
       admin: { description: 'Laisser vide si la formule vaut pour toutes les langues.' },
+    },
+    {
+      name: 'focus',
+      label: 'Spécialité',
+      type: 'text',
+      localized: true,
+      admin: { description: 'Par exemple « Prononciation et accent » ou « Lecture, écriture, expression orale ».' },
+    },
+    {
+      type: 'row',
+      fields: [
+        { ...cefrLevelField('levelFrom', 'Du niveau'), admin: { width: '50%' } },
+        { ...cefrLevelField('levelTo', 'Au niveau'), admin: { width: '50%' } },
+      ],
+    },
+    {
+      name: 'resourcesIncluded',
+      label: 'Supports de cours inclus',
+      type: 'checkbox',
+      defaultValue: true,
     },
     { name: 'description', label: 'Description', type: 'textarea', localized: true },
     {

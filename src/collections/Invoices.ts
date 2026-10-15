@@ -170,6 +170,7 @@ export const Invoices: CollectionConfig = {
         { name: 'date', label: 'Date', type: 'date' },
         { name: 'quantity', label: 'Quantité', type: 'number' },
         ...euroAmountFields('unitPrice', 'Prix unitaire', { readOnly: true }),
+        { name: 'discountPercent', label: 'Remise (%)', type: 'number', admin: { readOnly: true } },
         ...euroAmountFields('lineTotal', 'Total ligne', { readOnly: true }),
       ],
     },

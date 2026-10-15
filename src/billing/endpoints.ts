@@ -56,6 +56,7 @@ export const smartExportEndpoint: Endpoint = {
           date: l.date,
           quantity: l.quantity,
           unitPriceCents: l.unitPriceCents,
+          discountPercent: l.discountPercent ?? 0,
           totalCents: l.lineTotalCents,
         })),
         subtotalCents: d.subtotalCents,
