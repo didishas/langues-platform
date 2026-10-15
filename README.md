@@ -22,6 +22,19 @@ pnpm dev
 
 - Site : http://localhost:3000 (redirige vers `/fr`, aussi `/en` et `/he`)
 - Administration : http://localhost:3000/admin
+- Espace élève : http://localhost:3000/fr/espace
+
+Pour essayer l'espace élève : `pnpm seed:demo` crée l'élève `demo.eleve@motamot.test` (mot de passe `demo-eleve-2026`) avec deux devoirs, un document, une séance confirmée et une facture.
+
+## Espace élève
+
+Catherine crée le compte de l'élève dans l'administration (Élèves), avec un mot de passe qu'elle lui transmet. L'élève y retrouve :
+
+- ses prochaines séances, avec le lien de visio une fois la réservation confirmée (lien saisi sur le créneau) ;
+- ses devoirs et TP publiés, qu'il rend avec un texte et des fichiers (5 fichiers de 10 Mo au plus) ; une remise ne se modifie que si Catherine la renvoie « à refaire » ;
+- les documents partagés avec lui et ses factures validées.
+
+Les fichiers sont privés : ils ne s'ouvrent que pour l'élève concerné et l'équipe. En local ils sont rangés dans `uploads/` (hors dépôt) ; en production il faudra un stockage objet (Supabase Storage ou S3).
 
 ## Tests
 

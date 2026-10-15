@@ -7,6 +7,10 @@ const __filename = fileURLToPath(import.meta.url)
 const dirname = path.dirname(__filename)
 
 const nextConfig: NextConfig = {
+  // Les devoirs rendus peuvent contenir jusqu'à 5 fichiers de 10 Mo.
+  experimental: {
+    serverActions: { bodySizeLimit: '52mb' },
+  },
   async redirects() {
     return [{ source: '/', destination: '/fr', permanent: false }]
   },

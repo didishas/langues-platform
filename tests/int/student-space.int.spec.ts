@@ -163,6 +163,36 @@ describe('espace élève : chaque élève ne voit que ce qui le concerne', () =>
     expect(anonymous.meetingUrl).toBeUndefined()
   })
 
+  it('cache les factures encore à valider', async () => {
+    const draft = await payload.create({
+      collection: 'invoices',
+      data: {
+        provider: 'direct',
+        student: alice.id,
+        status: 'to_validate',
+        totalCents: 3000,
+        subtotalCents: 3000,
+        lines: [],
+      } as any,
+    })
+    const visible = await payload.find({ collection: 'invoices', ...asStudent(alice) })
+    expect(visible.docs.map((d) => d.id)).not.toContain(draft.id)
+  })
+
+  it('empêche un élève de se déclarer majeur ou de valider lui-même l’accord parental', async () => {
+    await payload.update({ collection: 'students', id: bob.id, data: { isMinor: true } as any })
+    await payload.update({
+      collection: 'students',
+      id: bob.id,
+      data: { isMinor: false, guardian: { consent: true } } as any,
+      user: { ...bob, collection: 'students' },
+      overrideAccess: false,
+    })
+    const after = await payload.findByID({ collection: 'students', id: bob.id })
+    expect(after.isMinor).toBe(true)
+    expect(after.guardian?.consent).toBeFalsy()
+  })
+
   it('ne laisse pas un élève lire la fiche ou les notes d’un autre', async () => {
     const others = await payload.find({ collection: 'students', ...asStudent(alice) })
     expect(others.docs.map((s) => s.id)).toEqual([alice.id])

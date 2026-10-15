@@ -1,6 +1,6 @@
-import type { CollectionConfig } from 'payload'
+import type { CollectionConfig, Where } from 'payload'
 
-import { ownStudentDocsOrStaff, staffOnly } from '@/access'
+import { isStaffUser, staffOnly } from '@/access'
 import { paymentWebhookEndpoint, prepareEndpoint, smartExportEndpoint } from '@/billing/endpoints'
 import { createPaymentLink, finalizeOnValidation } from '@/billing/service'
 import { euroAmountFields } from '@/fields'
@@ -24,7 +24,14 @@ export const Invoices: CollectionConfig = {
   defaultSort: '-createdAt',
   endpoints: [prepareEndpoint, smartExportEndpoint, paymentWebhookEndpoint],
   access: {
-    read: ownStudentDocsOrStaff,
+    // Un élève ne voit que ses factures validées : jamais les brouillons « à valider ».
+    read: ({ req }) => {
+      if (isStaffUser(req)) return true
+      if (req.user?.collection === 'students') {
+        return { and: [{ student: { equals: req.user.id } }, { status: { not_equals: 'to_validate' } }] } as Where
+      }
+      return false
+    },
     create: staffOnly,
     update: staffOnly,
     delete: staffOnly,

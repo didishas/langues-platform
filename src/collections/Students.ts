@@ -84,6 +84,8 @@ export const Students: CollectionConfig = {
           name: 'guardian',
           label: 'Responsable légal',
           type: 'group',
+          // L'accord parental est enregistré par Catherine, jamais par l'élève lui-même.
+          access: { update: ({ req }) => isStaffUser(req) },
           admin: { condition: (data) => Boolean(data?.isMinor) },
           fields: [
             { name: 'name', label: 'Nom', type: 'text' },

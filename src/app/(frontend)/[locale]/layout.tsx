@@ -9,6 +9,7 @@ import type { ReactNode } from 'react'
 import { LocaleSwitcher } from '@/components/LocaleSwitcher'
 import { isLocale, LOCALES, uiDir, type Locale } from '@/i18n/config'
 import { getDictionary } from '@/i18n/dictionaries'
+import { getStudentDictionary } from '@/i18n/studentDictionaries'
 import { getSiteSettings } from '@/lib/content'
 
 export const dynamic = 'force-dynamic'
@@ -62,6 +63,9 @@ export default async function LocaleLayout({
                   {t.nav.trial}
                 </a>
               ) : null}
+              <a href={`/${locale}/espace`} className="site-nav__space">
+                {getStudentDictionary(locale).navLink}
+              </a>
             </nav>
             <LocaleSwitcher current={locale} label={t.localeSwitcher} />
           </div>

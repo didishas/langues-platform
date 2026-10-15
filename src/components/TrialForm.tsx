@@ -30,9 +30,10 @@ export function TrialForm({
   }
 
   const err = state.fieldErrors ?? {}
+  const v = state.values ?? {}
 
   return (
-    <form action={action} className="trial-form" noValidate>
+    <form action={action} className="trial-form" noValidate key={JSON.stringify(v)}>
       <input type="hidden" name="locale" value={locale} />
       <div className="hp" aria-hidden="true">
         <label>
@@ -46,6 +47,7 @@ export function TrialForm({
         <input
           id="trial-name"
           name="name"
+          defaultValue={v.name}
           autoComplete="name"
           required
           aria-invalid={Boolean(err.name)}
@@ -64,6 +66,7 @@ export function TrialForm({
           <input
             id="trial-email"
             name="email"
+            defaultValue={v.email}
             type="email"
             autoComplete="email"
             dir="ltr"
@@ -79,13 +82,13 @@ export function TrialForm({
         </div>
         <div className="field">
           <label htmlFor="trial-phone">{t.phone}</label>
-          <input id="trial-phone" name="phone" type="tel" autoComplete="tel" dir="ltr" />
+          <input id="trial-phone" name="phone" type="tel" autoComplete="tel" dir="ltr" defaultValue={v.phone} />
         </div>
       </div>
 
       <div className="field">
         <label htmlFor="trial-language">{t.language}</label>
-        <select id="trial-language" name="language" defaultValue="">
+        <select id="trial-language" name="language" defaultValue={v.language ?? ''}>
           <option value="">{t.chooseLanguage}</option>
           {languages.map((l) => (
             <option key={l.id} value={l.id}>
@@ -96,13 +99,13 @@ export function TrialForm({
       </div>
 
       <label className="check">
-        <input type="checkbox" name="forMinor" />
+        <input type="checkbox" name="forMinor" defaultChecked={v.forMinor} />
         <span>{t.forMinor}</span>
       </label>
 
       <div className="field">
         <label htmlFor="trial-message">{t.message}</label>
-        <textarea id="trial-message" name="message" rows={4} />
+        <textarea id="trial-message" name="message" rows={4} defaultValue={v.message} />
       </div>
 
       <label className="check">
