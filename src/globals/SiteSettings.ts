@@ -8,7 +8,7 @@ export const SiteSettings: GlobalConfig = {
   admin: { group: 'Contenu du site' },
   access: { read: () => true, update: staffOnly },
   fields: [
-    { name: 'siteName', label: 'Nom du site', type: 'text', required: true, defaultValue: 'Cours de langues' },
+    { name: 'siteName', label: 'Nom du site', type: 'text', required: true, defaultValue: 'MotàMot' },
     { name: 'teacherName', label: 'Nom de la professeure', type: 'text' },
     { name: 'tagline', label: 'Accroche', type: 'text', localized: true },
     {
@@ -47,12 +47,26 @@ export const SiteSettings: GlobalConfig = {
         { name: 'phone', label: 'Téléphone', type: 'text' },
         { name: 'city', label: 'Ville', type: 'text' },
         {
+          name: 'followUpGroupUrl',
+          label: 'Lien du groupe de suivi (Telegram, WhatsApp…)',
+          type: 'text',
+          access: { read: ({ req }) => Boolean(req.user) },
+          admin: { description: 'Facultatif. Réservé aux élèves inscrits, jamais affiché sur le site public.' },
+        },
+        {
           name: 'trialLessonEnabled',
           label: 'Proposer un cours d’essai sur le site',
           type: 'checkbox',
           defaultValue: true,
         },
       ],
+    },
+    {
+      name: 'privacyText',
+      label: 'Politique de confidentialité',
+      type: 'textarea',
+      localized: true,
+      admin: { description: 'Affichée sur la page Confidentialité. Laissez une ligne vide entre deux paragraphes.' },
     },
   ],
 }

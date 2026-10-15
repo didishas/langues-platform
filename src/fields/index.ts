@@ -10,8 +10,13 @@ export const cefrLevelField = (name = 'level', label = 'Niveau CECRL'): SelectFi
 })
 
 /**
- * Montant saisi en euros dans le CMS, stocké en centimes entiers.
- * Catherine voit et tape « 40 » ou « 37,50 » ; la base garde 4000 ou 3750.
+ * Montant en euros dans le CMS, avec sa valeur en centimes entiers à côté.
+ * Les calculs (facturation) n'utilisent que les centimes.
+ *
+ * - Montant saisi par Catherine : le champ en euros est stocké et éditable ;
+ *   les centimes sont recalculés à chaque enregistrement (« 37,50 » → 3750).
+ * - Montant calculé par le code (`readOnly`) : seuls les centimes sont stockés ;
+ *   le champ en euros est virtuel et sert uniquement à l'affichage.
  */
 export const euroAmountFields = (
   name: string,
@@ -19,26 +24,22 @@ export const euroAmountFields = (
   options: { required?: boolean; description?: string; readOnly?: boolean } = {},
 ): Field[] => {
   const centsName = `${name}Cents`
+  const centsToEuros = ({ siblingData }: { siblingData?: Record<string, unknown> }) => {
+    const cents = siblingData?.[centsName]
+    return typeof cents === 'number' ? cents / 100 : undefined
+  }
   return [
     {
       name,
       label,
       type: 'number',
-      virtual: true,
       required: options.required,
       min: 0,
+      ...(options.readOnly ? { virtual: true, hooks: { afterRead: [centsToEuros] } } : {}),
       admin: {
         step: 0.01,
         readOnly: options.readOnly,
         description: options.description ?? 'En euros',
-      },
-      hooks: {
-        afterRead: [
-          ({ siblingData }) => {
-            const cents = siblingData?.[centsName]
-            return typeof cents === 'number' ? cents / 100 : undefined
-          },
-        ],
       },
     },
     {

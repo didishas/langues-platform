@@ -971,7 +971,15 @@ export interface SiteSetting {
   contactEmail?: string | null;
   phone?: string | null;
   city?: string | null;
+  /**
+   * Facultatif. Réservé aux élèves inscrits, jamais affiché sur le site public.
+   */
+  followUpGroupUrl?: string | null;
   trialLessonEnabled?: boolean | null;
+  /**
+   * Affichée sur la page Confidentialité. Laissez une ligne vide entre deux paragraphes.
+   */
+  privacyText?: string | null;
   updatedAt?: string | null;
   createdAt?: string | null;
 }
@@ -1035,7 +1043,9 @@ export interface SiteSettingsSelect<T extends boolean = true> {
   contactEmail?: T;
   phone?: T;
   city?: T;
+  followUpGroupUrl?: T;
   trialLessonEnabled?: T;
+  privacyText?: T;
   updatedAt?: T;
   createdAt?: T;
   globalType?: T;
