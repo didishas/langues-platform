@@ -1,0 +1,28 @@
+# Dépendances
+node_modules/
+.pnpm-store/
+
+# Build Next.js / Payload
+.next/
+out/
+build/
+dist/
+
+# Environnement et secrets
+.env
+.env.*
+!.env.example
+
+# Supabase local
+supabase/.branches/
+supabase/.temp/
+
+# Logs et outils
+*.log
+npm-debug.log*
+.DS_Store
+.vscode/
+.idea/
+coverage/
+*.tsbuildinfo
+next-env.d.ts
