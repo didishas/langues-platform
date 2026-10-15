@@ -1,3 +1,4 @@
+import path from 'path'
 import type { CollectionConfig } from 'payload'
 
 import { staffOnly } from '@/access'
@@ -22,5 +23,5 @@ export const Media: CollectionConfig = {
       admin: { description: 'Lue par les lecteurs d’écran et affichée si l’image ne charge pas.' },
     },
   ],
-  upload: true,
+  upload: { staticDir: path.resolve(process.cwd(), 'uploads', 'media') },
 }

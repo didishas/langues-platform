@@ -73,6 +73,10 @@ export interface Config {
     discounts: Discount;
     students: Student;
     'trial-requests': TrialRequest;
+    assignments: Assignment;
+    submissions: Submission;
+    'submission-files': SubmissionFile;
+    documents: Document;
     slots: Slot;
     bookings: Booking;
     prestations: Prestation;
@@ -92,6 +96,10 @@ export interface Config {
     discounts: DiscountsSelect<false> | DiscountsSelect<true>;
     students: StudentsSelect<false> | StudentsSelect<true>;
     'trial-requests': TrialRequestsSelect<false> | TrialRequestsSelect<true>;
+    assignments: AssignmentsSelect<false> | AssignmentsSelect<true>;
+    submissions: SubmissionsSelect<false> | SubmissionsSelect<true>;
+    'submission-files': SubmissionFilesSelect<false> | SubmissionFilesSelect<true>;
+    documents: DocumentsSelect<false> | DocumentsSelect<true>;
     slots: SlotsSelect<false> | SlotsSelect<true>;
     bookings: BookingsSelect<false> | BookingsSelect<true>;
     prestations: PrestationsSelect<false> | PrestationsSelect<true>;
@@ -346,6 +354,111 @@ export interface TrialRequest {
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "assignments".
+ */
+export interface Assignment {
+  id: number;
+  title: string;
+  kind: 'homework' | 'practical';
+  language?: (number | null) | Language;
+  dueDate?: string | null;
+  students: (number | Student)[];
+  /**
+   * Écrites dans la langue du cours : elles s’affichent dans le bon sens d’écriture.
+   */
+  instructions?: {
+    root: {
+      type: string;
+      children: {
+        type: any;
+        version: number;
+        [k: string]: unknown;
+      }[];
+      direction: ('ltr' | 'rtl') | null;
+      format: 'left' | 'start' | 'center' | 'right' | 'end' | 'justify' | '';
+      indent: number;
+      version: number;
+    };
+    [k: string]: unknown;
+  } | null;
+  /**
+   * Pensez à partager aussi ces documents avec les élèves concernés.
+   */
+  attachments?: (number | Document)[] | null;
+  published?: boolean | null;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "documents".
+ */
+export interface Document {
+  id: number;
+  title: string;
+  language?: (number | null) | Language;
+  /**
+   * Seuls ces élèves voient le document dans leur espace.
+   */
+  sharedWith?: (number | Student)[] | null;
+  note?: string | null;
+  updatedAt: string;
+  createdAt: string;
+  url?: string | null;
+  thumbnailURL?: string | null;
+  filename?: string | null;
+  mimeType?: string | null;
+  filesize?: number | null;
+  width?: number | null;
+  height?: number | null;
+  focalX?: number | null;
+  focalY?: number | null;
+}
+/**
+ * Les devoirs rendus par les élèves, à corriger.
+ *
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "submissions".
+ */
+export interface Submission {
+  id: number;
+  title?: string | null;
+  assignment: number | Assignment;
+  student?: (number | null) | Student;
+  text?: string | null;
+  files?: (number | SubmissionFile)[] | null;
+  status?: ('submitted' | 'corrected' | 'returned') | null;
+  feedback?: string | null;
+  /**
+   * Facultatif : une note, une lettre ou un mot.
+   */
+  grade?: string | null;
+  submittedAt?: string | null;
+  correctedAt?: string | null;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "submission-files".
+ */
+export interface SubmissionFile {
+  id: number;
+  owner?: (number | null) | Student;
+  updatedAt: string;
+  createdAt: string;
+  url?: string | null;
+  thumbnailURL?: string | null;
+  filename?: string | null;
+  mimeType?: string | null;
+  filesize?: number | null;
+  width?: number | null;
+  height?: number | null;
+  focalX?: number | null;
+  focalY?: number | null;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "slots".
  */
 export interface Slot {
@@ -356,6 +469,10 @@ export interface Slot {
   format?: ('individual' | 'group') | null;
   capacity?: number | null;
   status?: ('open' | 'closed') | null;
+  /**
+   * Lien Zoom, Meet ou autre. Visible uniquement par les élèves dont la réservation est confirmée.
+   */
+  meetingUrl?: string | null;
   /**
    * Laisser vide si le créneau est ouvert à toutes les langues.
    */
@@ -553,6 +670,22 @@ export interface PayloadLockedDocument {
     | ({
         relationTo: 'trial-requests';
         value: number | TrialRequest;
+      } | null)
+    | ({
+        relationTo: 'assignments';
+        value: number | Assignment;
+      } | null)
+    | ({
+        relationTo: 'submissions';
+        value: number | Submission;
+      } | null)
+    | ({
+        relationTo: 'submission-files';
+        value: number | SubmissionFile;
+      } | null)
+    | ({
+        relationTo: 'documents';
+        value: number | Document;
       } | null)
     | ({
         relationTo: 'slots';
@@ -756,6 +889,79 @@ export interface TrialRequestsSelect<T extends boolean = true> {
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "assignments_select".
+ */
+export interface AssignmentsSelect<T extends boolean = true> {
+  title?: T;
+  kind?: T;
+  language?: T;
+  dueDate?: T;
+  students?: T;
+  instructions?: T;
+  attachments?: T;
+  published?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "submissions_select".
+ */
+export interface SubmissionsSelect<T extends boolean = true> {
+  title?: T;
+  assignment?: T;
+  student?: T;
+  text?: T;
+  files?: T;
+  status?: T;
+  feedback?: T;
+  grade?: T;
+  submittedAt?: T;
+  correctedAt?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "submission-files_select".
+ */
+export interface SubmissionFilesSelect<T extends boolean = true> {
+  owner?: T;
+  updatedAt?: T;
+  createdAt?: T;
+  url?: T;
+  thumbnailURL?: T;
+  filename?: T;
+  mimeType?: T;
+  filesize?: T;
+  width?: T;
+  height?: T;
+  focalX?: T;
+  focalY?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "documents_select".
+ */
+export interface DocumentsSelect<T extends boolean = true> {
+  title?: T;
+  language?: T;
+  sharedWith?: T;
+  note?: T;
+  updatedAt?: T;
+  createdAt?: T;
+  url?: T;
+  thumbnailURL?: T;
+  filename?: T;
+  mimeType?: T;
+  filesize?: T;
+  width?: T;
+  height?: T;
+  focalX?: T;
+  focalY?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "slots_select".
  */
 export interface SlotsSelect<T extends boolean = true> {
@@ -765,6 +971,7 @@ export interface SlotsSelect<T extends boolean = true> {
   format?: T;
   capacity?: T;
   status?: T;
+  meetingUrl?: T;
   language?: T;
   updatedAt?: T;
   createdAt?: T;

@@ -26,3 +26,7 @@ npm-debug.log*
 coverage/
 *.tsbuildinfo
 next-env.d.ts
+
+# Fichiers téléversés en local (documents, devoirs rendus, images)
+uploads/
+media/

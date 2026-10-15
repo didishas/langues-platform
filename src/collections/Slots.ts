@@ -92,6 +92,16 @@ export const Slots: CollectionConfig = {
       ],
     },
     {
+      name: 'meetingUrl',
+      label: 'Lien de la visio',
+      type: 'text',
+      access: { read: ({ req }) => req.user?.collection === 'users' },
+      admin: {
+        description:
+          'Lien Zoom, Meet ou autre. Visible uniquement par les élèves dont la réservation est confirmée.',
+      },
+    },
+    {
       name: 'language',
       label: 'Langue (optionnel)',
       type: 'relationship',
