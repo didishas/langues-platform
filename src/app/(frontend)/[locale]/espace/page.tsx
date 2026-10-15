@@ -40,7 +40,7 @@ export default async function StudentHomePage({ params }: { params: Promise<{ lo
                   </div>
                   {s.meetingUrl ? (
                     <a className="button" href={s.meetingUrl} target="_blank" rel="noopener noreferrer">
-                      {t.home.join}
+                      {s.visioTool ? t.home.joinTool[s.visioTool] : t.home.join}
                     </a>
                   ) : null}
                 </li>

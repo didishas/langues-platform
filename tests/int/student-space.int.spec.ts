@@ -193,6 +193,40 @@ describe('espace élève : chaque élève ne voit que ce qui le concerne', () =>
     expect(after.guardian?.consent).toBeFalsy()
   })
 
+  it('remplit l’outil et le lien de visio depuis les réglages des cours', async () => {
+    await payload.updateGlobal({
+      slug: 'teaching-settings',
+      data: {
+        defaultVisioTool: 'meet',
+        zoomUrl: 'https://us05web.zoom.us/j/123456789',
+        meetUrl: 'https://meet.google.com/abc-defg-hij',
+      },
+    })
+    const s1 = await payload.create({
+      collection: 'slots',
+      data: { start: '2030-04-01T09:00:00.000Z', end: '2030-04-01T10:00:00.000Z' },
+    })
+    expect(s1.visioTool).toBe('meet')
+    expect(s1.meetingUrl).toBe('https://meet.google.com/abc-defg-hij')
+
+    // Changer d'outil remplace le lien par défaut de l'autre outil…
+    const s2 = await payload.update({ collection: 'slots', id: s1.id, data: { visioTool: 'zoom' } })
+    expect(s2.meetingUrl).toBe('https://us05web.zoom.us/j/123456789')
+
+    // …mais ne touche jamais à un lien saisi à la main.
+    const custom = await payload.update({
+      collection: 'slots',
+      id: s1.id,
+      data: { meetingUrl: 'https://us05web.zoom.us/j/999' },
+    })
+    const s3 = await payload.update({ collection: 'slots', id: custom.id, data: { visioTool: 'meet' } })
+    expect(s3.meetingUrl).toBe('https://us05web.zoom.us/j/999')
+
+    await expect(
+      payload.updateGlobal({ slug: 'teaching-settings', data: { zoomUrl: 'http://pas-zoom.example' } }),
+    ).rejects.toThrow()
+  })
+
   it('ne laisse pas un élève lire la fiche ou les notes d’un autre', async () => {
     const others = await payload.find({ collection: 'students', ...asStudent(alice) })
     expect(others.docs.map((s) => s.id)).toEqual([alice.id])

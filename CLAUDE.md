@@ -9,7 +9,7 @@ Référence fonctionnelle : le cahier des charges « Plateforme cours de langues
 - Next.js (App Router, TypeScript strict)
 - Payload CMS intégré à Next.js
 - Supabase : Postgres, authentification, stockage de fichiers
-- Visio : pour l'instant, lien Zoom (ou Meet) saisi par Catherine sur chaque créneau, visible par l'élève une fois la réservation confirmée. Salle intégrée au site (LiveKit) reportée à plus tard, sur décision de Didier.
+- Visio : pour l'instant, Zoom ou Google Meet au choix sur chaque créneau, avec un lien habituel par outil dans « Réglages des cours » ; le lien n'est visible par l'élève qu'une fois la réservation confirmée. Salle intégrée au site (LiveKit) reportée à plus tard, sur décision de Didier.
 - Vidéos de cours : Bunny Stream
 - Paiements phase 1 : Mollie (Bancontact, carte, SEPA)
 - Mails transactionnels : Resend ou Brevo

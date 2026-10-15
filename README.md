@@ -30,7 +30,7 @@ Pour essayer l'espace élève : `pnpm seed:demo` crée l'élève `demo.eleve@mot
 
 Catherine crée le compte de l'élève dans l'administration (Élèves), avec un mot de passe qu'elle lui transmet. L'élève y retrouve :
 
-- ses prochaines séances, avec le lien de visio une fois la réservation confirmée (lien saisi sur le créneau) ;
+- ses prochaines séances, avec le bouton « Rejoindre sur Zoom » ou « Rejoindre sur Google Meet » une fois la réservation confirmée. Catherine enregistre ses liens habituels dans Agenda > Réglages des cours ; ils se remplissent tout seuls sur chaque créneau, et restent modifiables au cas par cas ;
 - ses devoirs et TP publiés, qu'il rend avec un texte et des fichiers (5 fichiers de 10 Mo au plus) ; une remise ne se modifie que si Catherine la renvoie « à refaire » ;
 - les documents partagés avec lui et ses factures validées.
 

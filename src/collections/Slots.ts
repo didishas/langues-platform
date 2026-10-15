@@ -29,7 +29,18 @@ export const Slots: CollectionConfig = {
       },
     ],
     beforeChange: [
-      ({ data }) => {
+      async ({ data, req, originalDoc }) => {
+        // Outil et lien de visio : repris des « Réglages des cours » quand ils ne sont pas saisis.
+        const settings = await req.payload.findGlobal({ slug: 'teaching-settings', req, depth: 0, overrideAccess: true })
+        const defaults: Record<string, string | null | undefined> = { zoom: settings.zoomUrl, meet: settings.meetUrl }
+        const previousTool = originalDoc?.visioTool
+        const tool = data.visioTool ?? previousTool ?? settings.defaultVisioTool ?? 'zoom'
+        data.visioTool = tool
+        const currentUrl = data.meetingUrl ?? originalDoc?.meetingUrl
+        const urlWasPreviousDefault = previousTool && currentUrl && currentUrl === defaults[previousTool]
+        if (!currentUrl || (tool !== previousTool && urlWasPreviousDefault)) {
+          data.meetingUrl = defaults[tool] ?? null
+        }
         if (data.start) {
           const d = new Date(data.start)
           data.label = new Intl.DateTimeFormat('fr-BE', {
@@ -92,14 +103,31 @@ export const Slots: CollectionConfig = {
       ],
     },
     {
-      name: 'meetingUrl',
-      label: 'Lien de la visio',
-      type: 'text',
-      access: { read: ({ req }) => req.user?.collection === 'users' },
-      admin: {
-        description:
-          'Lien Zoom, Meet ou autre. Visible uniquement par les élèves dont la réservation est confirmée.',
-      },
+      type: 'row',
+      fields: [
+        {
+          name: 'visioTool',
+          label: 'Visio',
+          type: 'select',
+          options: [
+            { label: 'Zoom', value: 'zoom' },
+            { label: 'Google Meet', value: 'meet' },
+          ],
+          admin: { width: '33%', description: 'Vide = votre outil par défaut.' },
+        },
+        {
+          name: 'meetingUrl',
+          label: 'Lien de la visio',
+          type: 'text',
+          access: { read: ({ req }) => req.user?.collection === 'users' },
+          validate: (v: unknown) => !v || /^https:\/\//i.test(String(v)) || 'Le lien doit commencer par https://',
+          admin: {
+            width: '67%',
+            description:
+              'Vide = votre lien habituel (Réglages des cours). Visible seulement par les élèves dont la réservation est confirmée.',
+          },
+        },
+      ],
     },
     {
       name: 'language',

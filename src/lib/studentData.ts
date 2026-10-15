@@ -56,6 +56,7 @@ export type UpcomingSession = {
   slot: Slot
   confirmed: boolean
   meetingUrl: string | null
+  visioTool: 'zoom' | 'meet' | null
 }
 
 /**
@@ -85,7 +86,13 @@ export async function getUpcomingSessions(student: StudentUser): Promise<Upcomin
     const booking = bookings.docs.find((b) => idOf(b.slot) === slot.id)!
     const confirmed = booking.status === 'confirmed'
     const { meetingUrl, ...publicSlot } = slot
-    return { bookingId: booking.id, slot: publicSlot as Slot, confirmed, meetingUrl: confirmed ? (meetingUrl ?? null) : null }
+    return {
+      bookingId: booking.id,
+      slot: publicSlot as Slot,
+      confirmed,
+      meetingUrl: confirmed ? (meetingUrl ?? null) : null,
+      visioTool: slot.visioTool ?? null,
+    }
   })
 }
 

@@ -118,10 +118,12 @@ export interface Config {
   fallbackLocale: ('false' | 'none' | 'null') | false | null | ('fr' | 'en' | 'he') | ('fr' | 'en' | 'he')[];
   globals: {
     'site-settings': SiteSetting;
+    'teaching-settings': TeachingSetting;
     'billing-settings': BillingSetting;
   };
   globalsSelect: {
     'site-settings': SiteSettingsSelect<false> | SiteSettingsSelect<true>;
+    'teaching-settings': TeachingSettingsSelect<false> | TeachingSettingsSelect<true>;
     'billing-settings': BillingSettingsSelect<false> | BillingSettingsSelect<true>;
   };
   locale: 'fr' | 'en' | 'he';
@@ -470,7 +472,11 @@ export interface Slot {
   capacity?: number | null;
   status?: ('open' | 'closed') | null;
   /**
-   * Lien Zoom, Meet ou autre. Visible uniquement par les élèves dont la réservation est confirmée.
+   * Vide = votre outil par défaut.
+   */
+  visioTool?: ('zoom' | 'meet') | null;
+  /**
+   * Vide = votre lien habituel (Réglages des cours). Visible seulement par les élèves dont la réservation est confirmée.
    */
   meetingUrl?: string | null;
   /**
@@ -971,6 +977,7 @@ export interface SlotsSelect<T extends boolean = true> {
   format?: T;
   capacity?: T;
   status?: T;
+  visioTool?: T;
   meetingUrl?: T;
   language?: T;
   updatedAt?: T;
@@ -1191,6 +1198,26 @@ export interface SiteSetting {
   createdAt?: string | null;
 }
 /**
+ * Vos liens de visio habituels. Ils se remplissent tout seuls sur chaque nouveau créneau, selon l’outil choisi.
+ *
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "teaching-settings".
+ */
+export interface TeachingSetting {
+  id: number;
+  defaultVisioTool: 'zoom' | 'meet';
+  /**
+   * Par exemple votre salle personnelle : https://us05web.zoom.us/j/…
+   */
+  zoomUrl?: string | null;
+  /**
+   * Par exemple https://meet.google.com/abc-defg-hij
+   */
+  meetUrl?: string | null;
+  updatedAt?: string | null;
+  createdAt?: string | null;
+}
+/**
  * Statut de facturation et mentions légales. Le passage à Smart se fait ici, avec une date de bascule.
  *
  * This interface was referenced by `Config`'s JSON-Schema
@@ -1253,6 +1280,18 @@ export interface SiteSettingsSelect<T extends boolean = true> {
   followUpGroupUrl?: T;
   trialLessonEnabled?: T;
   privacyText?: T;
+  updatedAt?: T;
+  createdAt?: T;
+  globalType?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "teaching-settings_select".
+ */
+export interface TeachingSettingsSelect<T extends boolean = true> {
+  defaultVisioTool?: T;
+  zoomUrl?: T;
+  meetUrl?: T;
   updatedAt?: T;
   createdAt?: T;
   globalType?: T;

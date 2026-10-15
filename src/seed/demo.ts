@@ -112,7 +112,8 @@ async function demo() {
       end: new Date(start.getTime() + 90 * 60e3).toISOString(),
       capacity: 1,
       status: 'closed',
-      meetingUrl: 'https://meet.example/motamot-demo',
+      visioTool: 'meet',
+      meetingUrl: 'https://meet.google.com/abc-defg-hij',
     },
   })
   await payload.create({ collection: 'bookings', data: { slot: slot.id, student: student.id, status: 'confirmed' } })

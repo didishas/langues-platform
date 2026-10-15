@@ -26,6 +26,7 @@ import { TrialRequests } from './collections/TrialRequests'
 import { Users } from './collections/Users'
 import { BillingSettings } from './globals/BillingSettings'
 import { SiteSettings } from './globals/SiteSettings'
+import { TeachingSettings } from './globals/TeachingSettings'
 import { LOCALES } from './i18n/config'
 
 const filename = fileURLToPath(import.meta.url)
@@ -68,7 +69,7 @@ export default buildConfig({
     Media,
     Users,
   ],
-  globals: [SiteSettings, BillingSettings],
+  globals: [SiteSettings, TeachingSettings, BillingSettings],
   editor: lexicalEditor(),
   secret: process.env.PAYLOAD_SECRET || '',
   typescript: {
