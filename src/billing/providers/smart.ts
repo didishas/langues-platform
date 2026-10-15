@@ -39,6 +39,10 @@ export const smartProvider: BillingProvider = {
   async requestPayment() {
     return null
   },
+
+  async getPaymentStatus() {
+    return null
+  },
 }
 
 const csvCell = (value: string | number) => {

@@ -83,8 +83,11 @@ export interface PrepareInvoiceInput {
   prestations: PrestationInput[]
   /** Date d'émission (ISO, jour). */
   issueDate: string
-  /** Numéro d'ordre suivant pour l'année, fourni par le compteur stocké en base. */
-  sequence: number
+  /**
+   * Numéro d'ordre de l'année, attribué uniquement à la validation (numérotation continue).
+   * `null` pour un brouillon : ni numéro ni communication structurée.
+   */
+  sequence: number | null
 }
 
 export type PaymentStatus = 'open' | 'paid' | 'failed' | 'expired' | 'canceled'
@@ -122,4 +125,6 @@ export interface BillingProvider {
     settings: BillingSettings,
     context: PaymentContext,
   ): Promise<PaymentRequest | null>
+  /** Statut d'un paiement en ligne, redemandé au prestataire (jamais lu depuis le webhook). */
+  getPaymentStatus(paymentId: string): Promise<PaymentStatus | null>
 }

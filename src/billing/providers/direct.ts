@@ -23,14 +23,14 @@ export function createDirectProvider(gateway: PaymentGateway | null): BillingPro
       const totals = computeTotals(lines, settings)
       return {
         provider: 'direct',
-        number: formatInvoiceNumber(settings.invoicePrefix, year, sequence),
+        number: sequence === null ? null : formatInvoiceNumber(settings.invoicePrefix, year, sequence),
         customer,
         lines,
         ...totals,
         vatMention: settings.vatRegime === 'standard' ? null : (settings.vatMention ?? null),
         issueDate,
         dueDate: addDays(issueDate, settings.paymentTermDays),
-        structuredCommunication: structuredCommunicationFor(year, sequence),
+        structuredCommunication: sequence === null ? null : structuredCommunicationFor(year, sequence),
         delivery: customer.kind === 'business' ? 'peppol' : 'pdf',
         status: 'to_validate',
       }
@@ -46,6 +46,10 @@ export function createDirectProvider(gateway: PaymentGateway | null): BillingPro
         redirectUrl: context.redirectUrl,
         webhookUrl: context.webhookUrl,
       })
+    },
+
+    async getPaymentStatus(paymentId) {
+      return gateway ? gateway.getStatus(paymentId) : null
     },
   }
 }

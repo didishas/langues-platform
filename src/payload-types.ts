@@ -63,12 +63,22 @@ export type SupportedTimezones =
 
 export interface Config {
   auth: {
+    students: StudentAuthOperations;
     users: UserAuthOperations;
   };
   blocks: {};
   collections: {
-    users: User;
+    languages: Language;
+    offers: Offer;
+    students: Student;
+    'trial-requests': TrialRequest;
+    slots: Slot;
+    bookings: Booking;
+    prestations: Prestation;
+    invoices: Invoice;
+    'invoice-counters': InvoiceCounter;
     media: Media;
+    users: User;
     'payload-kv': PayloadKv;
     'payload-locked-documents': PayloadLockedDocument;
     'payload-preferences': PayloadPreference;
@@ -76,27 +86,60 @@ export interface Config {
   };
   collectionsJoins: {};
   collectionsSelect: {
-    users: UsersSelect<false> | UsersSelect<true>;
+    languages: LanguagesSelect<false> | LanguagesSelect<true>;
+    offers: OffersSelect<false> | OffersSelect<true>;
+    students: StudentsSelect<false> | StudentsSelect<true>;
+    'trial-requests': TrialRequestsSelect<false> | TrialRequestsSelect<true>;
+    slots: SlotsSelect<false> | SlotsSelect<true>;
+    bookings: BookingsSelect<false> | BookingsSelect<true>;
+    prestations: PrestationsSelect<false> | PrestationsSelect<true>;
+    invoices: InvoicesSelect<false> | InvoicesSelect<true>;
+    'invoice-counters': InvoiceCountersSelect<false> | InvoiceCountersSelect<true>;
     media: MediaSelect<false> | MediaSelect<true>;
+    users: UsersSelect<false> | UsersSelect<true>;
     'payload-kv': PayloadKvSelect<false> | PayloadKvSelect<true>;
     'payload-locked-documents': PayloadLockedDocumentsSelect<false> | PayloadLockedDocumentsSelect<true>;
     'payload-preferences': PayloadPreferencesSelect<false> | PayloadPreferencesSelect<true>;
     'payload-migrations': PayloadMigrationsSelect<false> | PayloadMigrationsSelect<true>;
   };
   db: {
-    defaultIDType: string;
+    defaultIDType: number;
   };
-  fallbackLocale: null;
-  globals: {};
-  globalsSelect: {};
-  locale: null;
+  fallbackLocale: ('false' | 'none' | 'null') | false | null | ('fr' | 'en' | 'he') | ('fr' | 'en' | 'he')[];
+  globals: {
+    'site-settings': SiteSetting;
+    'billing-settings': BillingSetting;
+  };
+  globalsSelect: {
+    'site-settings': SiteSettingsSelect<false> | SiteSettingsSelect<true>;
+    'billing-settings': BillingSettingsSelect<false> | BillingSettingsSelect<true>;
+  };
+  locale: 'fr' | 'en' | 'he';
   widgets: {
     collections: CollectionsWidget;
   };
-  user: User;
+  user: Student | User;
   jobs: {
     tasks: unknown;
     workflows: unknown;
+  };
+}
+export interface StudentAuthOperations {
+  forgotPassword: {
+    email: string;
+    password: string;
+  };
+  login: {
+    email: string;
+    password: string;
+  };
+  registerFirstUser: {
+    email: string;
+    password: string;
+  };
+  unlock: {
+    email: string;
+    password: string;
   };
 }
 export interface UserAuthOperations {
@@ -119,35 +162,51 @@ export interface UserAuthOperations {
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
- * via the `definition` "users".
+ * via the `definition` "languages".
  */
-export interface User {
-  id: string;
+export interface Language {
+  id: number;
+  code: 'he' | 'en' | 'es' | 'fr' | 'ro';
+  order?: number | null;
+  published?: boolean | null;
+  name: string;
+  /**
+   * Par exemple עברית, Română, Español.
+   */
+  nativeName?: string | null;
+  summary?: string | null;
+  description?: {
+    root: {
+      type: string;
+      children: {
+        type: any;
+        version: number;
+        [k: string]: unknown;
+      }[];
+      direction: ('ltr' | 'rtl') | null;
+      format: 'left' | 'start' | 'center' | 'right' | 'end' | 'justify' | '';
+      indent: number;
+      version: number;
+    };
+    [k: string]: unknown;
+  } | null;
+  /**
+   * Affichée telle quelle, dans le bon sens d’écriture (de droite à gauche pour l’hébreu).
+   */
+  sample?: string | null;
+  image?: (number | null) | Media;
   updatedAt: string;
   createdAt: string;
-  email: string;
-  resetPasswordToken?: string | null;
-  resetPasswordExpiration?: string | null;
-  salt?: string | null;
-  hash?: string | null;
-  loginAttempts?: number | null;
-  lockUntil?: string | null;
-  sessions?:
-    | {
-        id: string;
-        createdAt?: string | null;
-        expiresAt: string;
-      }[]
-    | null;
-  password?: string | null;
-  collection: 'users';
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "media".
  */
 export interface Media {
-  id: string;
+  id: number;
+  /**
+   * Lue par les lecteurs d’écran et affichée si l’image ne charge pas.
+   */
   alt: string;
   updatedAt: string;
   createdAt: string;
@@ -163,10 +222,261 @@ export interface Media {
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "offers".
+ */
+export interface Offer {
+  id: number;
+  title: string;
+  kind: 'single' | 'pack' | 'subscription';
+  format: 'individual' | 'group';
+  durationMinutes: number;
+  sessionsCount?: number | null;
+  /**
+   * En euros, pour la formule entière (toutes séances comprises).
+   */
+  price: number;
+  priceCents?: number | null;
+  /**
+   * Laisser vide si la formule vaut pour toutes les langues.
+   */
+  languages?: (number | Language)[] | null;
+  description?: string | null;
+  order?: number | null;
+  published?: boolean | null;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "students".
+ */
+export interface Student {
+  id: number;
+  firstName: string;
+  lastName: string;
+  fullName?: string | null;
+  phone?: string | null;
+  preferredLocale?: ('fr' | 'en' | 'he') | null;
+  languages?: (number | Language)[] | null;
+  level?: ('A1' | 'A2' | 'B1' | 'B2' | 'C1' | 'C2') | null;
+  isMinor?: boolean | null;
+  guardian?: {
+    name?: string | null;
+    email?: string | null;
+    phone?: string | null;
+    consent?: boolean | null;
+  };
+  recordingConsent?: boolean | null;
+  recordingConsentAt?: string | null;
+  customerKind?: ('individual' | 'business') | null;
+  companyName?: string | null;
+  vatNumber?: string | null;
+  billingAddress?: string | null;
+  notes?: string | null;
+  updatedAt: string;
+  createdAt: string;
+  email: string;
+  resetPasswordToken?: string | null;
+  resetPasswordExpiration?: string | null;
+  salt?: string | null;
+  hash?: string | null;
+  resetPasswordRequestedAt?: string | null;
+  loginAttempts?: number | null;
+  lockUntil?: string | null;
+  sessions?:
+    | {
+        id: string;
+        createdAt?: string | null;
+        expiresAt: string;
+      }[]
+    | null;
+  password?: string | null;
+  collection: 'students';
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "trial-requests".
+ */
+export interface TrialRequest {
+  id: number;
+  name: string;
+  email: string;
+  phone?: string | null;
+  language?: (number | null) | Language;
+  forMinor?: boolean | null;
+  message?: string | null;
+  locale?: string | null;
+  privacyConsent: boolean;
+  status?: ('new' | 'contacted' | 'converted' | 'archived') | null;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "slots".
+ */
+export interface Slot {
+  id: number;
+  label?: string | null;
+  start: string;
+  end: string;
+  format?: ('individual' | 'group') | null;
+  capacity?: number | null;
+  status?: ('open' | 'closed') | null;
+  /**
+   * Laisser vide si le créneau est ouvert à toutes les langues.
+   */
+  language?: (number | null) | Language;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "bookings".
+ */
+export interface Booking {
+  id: number;
+  slot: number | Slot;
+  student: number | Student;
+  offer?: (number | null) | Offer;
+  status?: ('requested' | 'confirmed' | 'cancelled') | null;
+  message?: string | null;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "prestations".
+ */
+export interface Prestation {
+  id: number;
+  student: number | Student;
+  date: string;
+  offer?: (number | null) | Offer;
+  description: string;
+  quantity: number;
+  /**
+   * En euros
+   */
+  unitPrice: number;
+  unitPriceCents?: number | null;
+  booking?: (number | null) | Booking;
+  status?: ('to_invoice' | 'invoiced') | null;
+  invoice?: (number | null) | Invoice;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * Les factures se préparent à partir des prestations. Une facture reste un brouillon tant qu’elle n’est pas validée.
+ *
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "invoices".
+ */
+export interface Invoice {
+  id: number;
+  title?: string | null;
+  status: 'to_validate' | 'validated' | 'sent' | 'paid' | 'cancelled';
+  provider: 'direct' | 'smart';
+  number?: string | null;
+  structuredCommunication?: string | null;
+  student: number | Student;
+  customer?: {
+    name?: string | null;
+    email?: string | null;
+    kind?: ('individual' | 'business') | null;
+    vatNumber?: string | null;
+  };
+  lines?:
+    | {
+        prestation?: (number | null) | Prestation;
+        description?: string | null;
+        date?: string | null;
+        quantity?: number | null;
+        /**
+         * En euros
+         */
+        unitPrice?: number | null;
+        unitPriceCents?: number | null;
+        /**
+         * En euros
+         */
+        lineTotal?: number | null;
+        lineTotalCents?: number | null;
+        id?: string | null;
+      }[]
+    | null;
+  /**
+   * En euros
+   */
+  subtotal?: number | null;
+  subtotalCents?: number | null;
+  vatRatePercent?: number | null;
+  /**
+   * En euros
+   */
+  vat?: number | null;
+  vatCents?: number | null;
+  /**
+   * En euros
+   */
+  total?: number | null;
+  totalCents?: number | null;
+  vatMention?: string | null;
+  issueDate?: string | null;
+  dueDate?: string | null;
+  delivery?: ('pdf' | 'peppol' | 'smart') | null;
+  paymentUrl?: string | null;
+  paymentId?: string | null;
+  validatedAt?: string | null;
+  paidAt?: string | null;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "invoice-counters".
+ */
+export interface InvoiceCounter {
+  id: number;
+  year: number;
+  last: number;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "users".
+ */
+export interface User {
+  id: number;
+  name?: string | null;
+  role?: ('teacher' | 'tech') | null;
+  updatedAt: string;
+  createdAt: string;
+  email: string;
+  resetPasswordToken?: string | null;
+  resetPasswordExpiration?: string | null;
+  salt?: string | null;
+  hash?: string | null;
+  resetPasswordRequestedAt?: string | null;
+  loginAttempts?: number | null;
+  lockUntil?: string | null;
+  sessions?:
+    | {
+        id: string;
+        createdAt?: string | null;
+        expiresAt: string;
+      }[]
+    | null;
+  password?: string | null;
+  collection: 'users';
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "payload-kv".
  */
 export interface PayloadKv {
-  id: string;
+  id: number;
   key: string;
   data:
     | {
@@ -183,21 +493,62 @@ export interface PayloadKv {
  * via the `definition` "payload-locked-documents".
  */
 export interface PayloadLockedDocument {
-  id: string;
+  id: number;
   document?:
     | ({
-        relationTo: 'users';
-        value: string | User;
+        relationTo: 'languages';
+        value: number | Language;
+      } | null)
+    | ({
+        relationTo: 'offers';
+        value: number | Offer;
+      } | null)
+    | ({
+        relationTo: 'students';
+        value: number | Student;
+      } | null)
+    | ({
+        relationTo: 'trial-requests';
+        value: number | TrialRequest;
+      } | null)
+    | ({
+        relationTo: 'slots';
+        value: number | Slot;
+      } | null)
+    | ({
+        relationTo: 'bookings';
+        value: number | Booking;
+      } | null)
+    | ({
+        relationTo: 'prestations';
+        value: number | Prestation;
+      } | null)
+    | ({
+        relationTo: 'invoices';
+        value: number | Invoice;
+      } | null)
+    | ({
+        relationTo: 'invoice-counters';
+        value: number | InvoiceCounter;
       } | null)
     | ({
         relationTo: 'media';
-        value: string | Media;
+        value: number | Media;
+      } | null)
+    | ({
+        relationTo: 'users';
+        value: number | User;
       } | null);
   globalSlug?: string | null;
-  user: {
-    relationTo: 'users';
-    value: string | User;
-  };
+  user:
+    | {
+        relationTo: 'students';
+        value: number | Student;
+      }
+    | {
+        relationTo: 'users';
+        value: number | User;
+      };
   updatedAt: string;
   createdAt: string;
 }
@@ -206,11 +557,16 @@ export interface PayloadLockedDocument {
  * via the `definition` "payload-preferences".
  */
 export interface PayloadPreference {
-  id: string;
-  user: {
-    relationTo: 'users';
-    value: string | User;
-  };
+  id: number;
+  user:
+    | {
+        relationTo: 'students';
+        value: number | Student;
+      }
+    | {
+        relationTo: 'users';
+        value: number | User;
+      };
   key?: string | null;
   value?:
     | {
@@ -229,7 +585,7 @@ export interface PayloadPreference {
  * via the `definition` "payload-migrations".
  */
 export interface PayloadMigration {
-  id: string;
+  id: number;
   name?: string | null;
   batch?: number | null;
   updatedAt: string;
@@ -237,9 +593,68 @@ export interface PayloadMigration {
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
- * via the `definition` "users_select".
+ * via the `definition` "languages_select".
  */
-export interface UsersSelect<T extends boolean = true> {
+export interface LanguagesSelect<T extends boolean = true> {
+  code?: T;
+  order?: T;
+  published?: T;
+  name?: T;
+  nativeName?: T;
+  summary?: T;
+  description?: T;
+  sample?: T;
+  image?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "offers_select".
+ */
+export interface OffersSelect<T extends boolean = true> {
+  title?: T;
+  kind?: T;
+  format?: T;
+  durationMinutes?: T;
+  sessionsCount?: T;
+  price?: T;
+  priceCents?: T;
+  languages?: T;
+  description?: T;
+  order?: T;
+  published?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "students_select".
+ */
+export interface StudentsSelect<T extends boolean = true> {
+  firstName?: T;
+  lastName?: T;
+  fullName?: T;
+  phone?: T;
+  preferredLocale?: T;
+  languages?: T;
+  level?: T;
+  isMinor?: T;
+  guardian?:
+    | T
+    | {
+        name?: T;
+        email?: T;
+        phone?: T;
+        consent?: T;
+      };
+  recordingConsent?: T;
+  recordingConsentAt?: T;
+  customerKind?: T;
+  companyName?: T;
+  vatNumber?: T;
+  billingAddress?: T;
+  notes?: T;
   updatedAt?: T;
   createdAt?: T;
   email?: T;
@@ -247,6 +662,7 @@ export interface UsersSelect<T extends boolean = true> {
   resetPasswordExpiration?: T;
   salt?: T;
   hash?: T;
+  resetPasswordRequestedAt?: T;
   loginAttempts?: T;
   lockUntil?: T;
   sessions?:
@@ -256,6 +672,129 @@ export interface UsersSelect<T extends boolean = true> {
         createdAt?: T;
         expiresAt?: T;
       };
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "trial-requests_select".
+ */
+export interface TrialRequestsSelect<T extends boolean = true> {
+  name?: T;
+  email?: T;
+  phone?: T;
+  language?: T;
+  forMinor?: T;
+  message?: T;
+  locale?: T;
+  privacyConsent?: T;
+  status?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "slots_select".
+ */
+export interface SlotsSelect<T extends boolean = true> {
+  label?: T;
+  start?: T;
+  end?: T;
+  format?: T;
+  capacity?: T;
+  status?: T;
+  language?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "bookings_select".
+ */
+export interface BookingsSelect<T extends boolean = true> {
+  slot?: T;
+  student?: T;
+  offer?: T;
+  status?: T;
+  message?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "prestations_select".
+ */
+export interface PrestationsSelect<T extends boolean = true> {
+  student?: T;
+  date?: T;
+  offer?: T;
+  description?: T;
+  quantity?: T;
+  unitPrice?: T;
+  unitPriceCents?: T;
+  booking?: T;
+  status?: T;
+  invoice?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "invoices_select".
+ */
+export interface InvoicesSelect<T extends boolean = true> {
+  title?: T;
+  status?: T;
+  provider?: T;
+  number?: T;
+  structuredCommunication?: T;
+  student?: T;
+  customer?:
+    | T
+    | {
+        name?: T;
+        email?: T;
+        kind?: T;
+        vatNumber?: T;
+      };
+  lines?:
+    | T
+    | {
+        prestation?: T;
+        description?: T;
+        date?: T;
+        quantity?: T;
+        unitPrice?: T;
+        unitPriceCents?: T;
+        lineTotal?: T;
+        lineTotalCents?: T;
+        id?: T;
+      };
+  subtotal?: T;
+  subtotalCents?: T;
+  vatRatePercent?: T;
+  vat?: T;
+  vatCents?: T;
+  total?: T;
+  totalCents?: T;
+  vatMention?: T;
+  issueDate?: T;
+  dueDate?: T;
+  delivery?: T;
+  paymentUrl?: T;
+  paymentId?: T;
+  validatedAt?: T;
+  paidAt?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "invoice-counters_select".
+ */
+export interface InvoiceCountersSelect<T extends boolean = true> {
+  year?: T;
+  last?: T;
+  updatedAt?: T;
+  createdAt?: T;
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
@@ -274,6 +813,31 @@ export interface MediaSelect<T extends boolean = true> {
   height?: T;
   focalX?: T;
   focalY?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "users_select".
+ */
+export interface UsersSelect<T extends boolean = true> {
+  name?: T;
+  role?: T;
+  updatedAt?: T;
+  createdAt?: T;
+  email?: T;
+  resetPasswordToken?: T;
+  resetPasswordExpiration?: T;
+  salt?: T;
+  hash?: T;
+  resetPasswordRequestedAt?: T;
+  loginAttempts?: T;
+  lockUntil?: T;
+  sessions?:
+    | T
+    | {
+        id?: T;
+        createdAt?: T;
+        expiresAt?: T;
+      };
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
@@ -314,6 +878,122 @@ export interface PayloadMigrationsSelect<T extends boolean = true> {
   batch?: T;
   updatedAt?: T;
   createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "site-settings".
+ */
+export interface SiteSetting {
+  id: number;
+  siteName: string;
+  teacherName?: string | null;
+  tagline?: string | null;
+  heroTitle?: string | null;
+  heroText?: string | null;
+  heroImage?: (number | null) | Media;
+  aboutTitle?: string | null;
+  aboutText?: string | null;
+  portrait?: (number | null) | Media;
+  faq?:
+    | {
+        question: string;
+        answer: string;
+        id?: string | null;
+      }[]
+    | null;
+  contactEmail?: string | null;
+  phone?: string | null;
+  city?: string | null;
+  trialLessonEnabled?: boolean | null;
+  updatedAt?: string | null;
+  createdAt?: string | null;
+}
+/**
+ * Statut de facturation et mentions légales. Le passage à Smart se fait ici, avec une date de bascule.
+ *
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "billing-settings".
+ */
+export interface BillingSetting {
+  id: number;
+  activeProvider: 'direct' | 'smart';
+  /**
+   * Avant cette date, les factures restent émises par vous. Vide = immédiat.
+   */
+  switchDate?: string | null;
+  legalName?: string | null;
+  enterpriseNumber?: string | null;
+  address?: string | null;
+  iban?: string | null;
+  bic?: string | null;
+  /**
+   * Exemple : F donne F2026-0001.
+   */
+  invoicePrefix?: string | null;
+  paymentTermDays?: number | null;
+  onlinePayments?: boolean | null;
+  /**
+   * À confirmer avec votre comptable.
+   */
+  vatRegime: 'franchise' | 'exempt' | 'standard';
+  vatRatePercent?: number | null;
+  /**
+   * Texte exact fourni par votre comptable.
+   */
+  vatMention?: string | null;
+  updatedAt?: string | null;
+  createdAt?: string | null;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "site-settings_select".
+ */
+export interface SiteSettingsSelect<T extends boolean = true> {
+  siteName?: T;
+  teacherName?: T;
+  tagline?: T;
+  heroTitle?: T;
+  heroText?: T;
+  heroImage?: T;
+  aboutTitle?: T;
+  aboutText?: T;
+  portrait?: T;
+  faq?:
+    | T
+    | {
+        question?: T;
+        answer?: T;
+        id?: T;
+      };
+  contactEmail?: T;
+  phone?: T;
+  city?: T;
+  trialLessonEnabled?: T;
+  updatedAt?: T;
+  createdAt?: T;
+  globalType?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "billing-settings_select".
+ */
+export interface BillingSettingsSelect<T extends boolean = true> {
+  activeProvider?: T;
+  switchDate?: T;
+  legalName?: T;
+  enterpriseNumber?: T;
+  address?: T;
+  iban?: T;
+  bic?: T;
+  invoicePrefix?: T;
+  paymentTermDays?: T;
+  onlinePayments?: T;
+  vatRegime?: T;
+  vatRatePercent?: T;
+  vatMention?: T;
+  updatedAt?: T;
+  createdAt?: T;
+  globalType?: T;
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema

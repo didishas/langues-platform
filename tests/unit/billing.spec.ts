@@ -87,6 +87,13 @@ describe('DirectProvider', () => {
     expect(draft.delivery).toBe('pdf')
   })
 
+  it('ne consomme aucun numéro tant que le brouillon n’est pas validé', () => {
+    const draft = createDirectProvider(null).prepareInvoice({ ...input, sequence: null }, settings)
+    expect(draft.number).toBeNull()
+    expect(draft.structuredCommunication).toBeNull()
+    expect(draft.totalCents).toBe(8000)
+  })
+
   it('applique la TVA en régime standard, sans mention', () => {
     const draft = createDirectProvider(null).prepareInvoice(input, { ...settings, vatRegime: 'standard' })
     expect(draft.vatCents).toBe(1680)
