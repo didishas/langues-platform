@@ -36,6 +36,25 @@ export const Prestations: CollectionConfig = {
           data.discountPercent = discount.percent ?? 0
         }
         if (data.discount === null && previous) data.discountPercent = 0
+
+        // Langue de la prestation : reprise de la formule ou de l'élève quand il n'y en a qu'une,
+        // sinon laissée vide (Catherine peut la choisir). Sert au tableau de bord « par langue ».
+        if (data.language == null && !originalDoc?.language) {
+          const idOf = (v: unknown) => (v && typeof v === 'object' ? (v as { id: number }).id : (v as number | undefined))
+          const single = (list: unknown) => (Array.isArray(list) && list.length === 1 ? idOf(list[0]) : undefined)
+          const offerId = idOf(data.offer ?? originalDoc?.offer)
+          const studentId = idOf(data.student ?? originalDoc?.student)
+          let language: number | undefined
+          if (offerId) {
+            const offer = await req.payload.findByID({ collection: 'offers', id: offerId, req, depth: 0 })
+            language = single(offer.languages)
+          }
+          if (!language && studentId) {
+            const student = await req.payload.findByID({ collection: 'students', id: studentId, req, depth: 0, overrideAccess: true })
+            language = single(student.languages)
+          }
+          if (language) data.language = language
+        }
         return data
       },
     ],
@@ -85,6 +104,16 @@ export const Prestations: CollectionConfig = {
           admin: { width: '50%', description: 'Reprise de la réduction choisie, modifiable au cas par cas.' },
         },
       ],
+    },
+    {
+      name: 'language',
+      label: 'Langue',
+      type: 'relationship',
+      relationTo: 'languages',
+      admin: {
+        position: 'sidebar',
+        description: 'Remplie automatiquement si la formule ou l’élève n’a qu’une langue. Sert au tableau de bord.',
+      },
     },
     { name: 'booking', label: 'Réservation liée', type: 'relationship', relationTo: 'bookings' },
     {

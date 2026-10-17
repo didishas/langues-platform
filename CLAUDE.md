@@ -4,12 +4,13 @@ Site et outil de travail de Catherine, professeure indépendante en Belgique : h
 
 Le cahier des charges (doc partagé « Plateforme cours de langues — Cahier des charges ») décrit la cible, pas l'existant. Ne développer que le périmètre demandé.
 
-## Repères (vérifiés le 17/10/2026)
+## Repères (vérifiés le 17/10/2026, tableau de bord compris)
 
 - `src/collections/`, `src/globals/` : modèle de données et règles d'accès Payload. `src/access/` : fonctions d'accès communes.
 - `src/billing/` : facturation (seul endroit qui connaît Mollie ou Smart). `src/lib/dbLock.ts` : verrous Postgres.
 - `src/app/(frontend)/[locale]/` : site public et espace élève (`espace/`). `src/i18n/` : langues, sens d'écriture, textes de l'interface.
-- `src/seed/` : contenu de départ et élève de démonstration. `tests/unit`, `tests/int` (Postgres), `tests/e2e` (Playwright).
+- `src/dashboard/` : calculs (fonctions pures, à l'heure de Bruxelles) et chargement du tableau de bord ; affichage dans `src/components/admin/TeacherDashboard.tsx`, styles dans `src/app/(payload)/custom.scss`.
+- `src/seed/` : contenu de départ et élève de démonstration (avec un historique fictif marqué « Démo »). `tests/unit`, `tests/int` (Postgres), `tests/e2e` (Playwright).
 
 Commandes (pnpm, lockfile présent) :
 

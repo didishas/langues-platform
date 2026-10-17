@@ -36,6 +36,13 @@ Catherine crée le compte de l'élève dans l'administration (Élèves), avec un
 
 Les fichiers sont privés : ils ne s'ouvrent que pour l'élève concerné et l'équipe. En local ils sont rangés dans `uploads/` (hors dépôt) ; en production il faudra un stockage objet (Supabase Storage ou S3).
 
+## Tableau de bord de Catherine
+
+En tête de l'accueil de l'administration, dans la langue choisie pour l'administration (français, anglais, hébreu) :
+encaissé ce mois-ci et par mois, à encaisser, factures en retard, réserve impôts et cotisations (seulement si un pourcentage
+est saisi dans les réglages de facturation, à fixer avec le comptable), montant par langue, heures données et remplissage,
+élèves actifs, nouveaux et à relancer, devoirs à corriger et demandes de cours d'essai. Chaque chiffre affiche sa définition.
+
 ## Tests
 
 ```bash

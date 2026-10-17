@@ -131,8 +131,73 @@ async function demo() {
   const draft = await prepareDraftInvoice(payload, { studentId: student.id, prestationIds: [past.id] })
   await payload.update({ collection: 'invoices', id: draft.id, data: { status: 'validated' } })
 
+  await demoHistory(payload)
+
   payload.logger.info(`Élève de démonstration créé : ${EMAIL} / ${PASSWORD}`)
   process.exit(0)
+}
+
+/**
+ * Historique FICTIF de quelques mois pour voir le tableau de bord en local :
+ * trois élèves « Démo », des cours passés, des factures payées à des dates passées et une en retard.
+ * Ces chiffres ne correspondent à aucune activité réelle.
+ */
+async function demoHistory(payload: Awaited<ReturnType<typeof getPayload>>) {
+  const DAY = 864e5
+  const langs = await payload.find({ collection: 'languages', limit: 10, depth: 0 })
+  const lang = (code: string) => langs.docs.find((l) => l.code === code)?.id
+  const people = [
+    { firstName: 'Ana', code: 'es', price: 30 },
+    { firstName: 'Tom', code: 'en', price: 30 },
+    { firstName: 'Ilan', code: 'he', price: 35 },
+  ]
+  for (const [i, person] of people.entries()) {
+    const student = await payload.create({
+      collection: 'students',
+      data: {
+        firstName: person.firstName,
+        lastName: 'Démo',
+        email: `demo.${person.firstName.toLowerCase()}@motamot.test`,
+        password: PASSWORD,
+        languages: lang(person.code) ? [lang(person.code)] : [],
+      } as any,
+    })
+    // Un cours toutes les deux semaines pendant ~5 mois (Ilan arrête il y a 6 semaines : « à relancer »).
+    const stopAfter = person.firstName === 'Ilan' ? 42 : 0
+    for (let daysAgo = 150 - i * 3; daysAgo > stopAfter; daysAgo -= 14) {
+      const start = new Date(Date.now() - daysAgo * DAY)
+      start.setUTCHours(15, 0, 0, 0)
+      const slot = await payload.create({
+        collection: 'slots',
+        data: { start: start.toISOString(), end: new Date(start.getTime() + 90 * 60e3).toISOString(), capacity: 1, status: 'closed' },
+      })
+      await payload.create({ collection: 'bookings', data: { slot: slot.id, student: student.id, status: 'confirmed' } })
+      const prestation = await payload.create({
+        collection: 'prestations',
+        data: { student: student.id, date: start.toISOString(), description: 'Cours individuel, 90 min (démo)', quantity: 1, unitPrice: person.price } as any,
+      })
+      const draft = await prepareDraftInvoice(payload, { studentId: student.id, prestationIds: [prestation.id] })
+      await payload.update({ collection: 'invoices', id: draft.id, data: { status: 'validated' } })
+      if (daysAgo > 20) {
+        await payload.update({ collection: 'invoices', id: draft.id, data: { status: 'paid' } })
+        await payload.update({
+          collection: 'invoices',
+          id: draft.id,
+          data: { paidAt: new Date(start.getTime() + 6 * DAY).toISOString() } as any,
+        })
+      } else if (person.firstName === 'Tom') {
+        // Facture laissée impayée, échéance dépassée.
+        await payload.update({ collection: 'invoices', id: draft.id, data: { dueDate: new Date(Date.now() - 4 * DAY).toISOString() } as any })
+      }
+    }
+  }
+  // Un créneau de groupe à venir, partiellement rempli.
+  const group = new Date(Date.now() + 9 * DAY)
+  group.setUTCHours(17, 0, 0, 0)
+  await payload.create({
+    collection: 'slots',
+    data: { start: group.toISOString(), end: new Date(group.getTime() + 90 * 60e3).toISOString(), capacity: 4, format: 'group' },
+  })
 }
 
 demo().catch((e) => {

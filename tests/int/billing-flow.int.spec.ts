@@ -139,6 +139,40 @@ describe('réductions', () => {
   })
 })
 
+describe('langue des prestations', () => {
+  it('reprend la langue de la formule ou de l’élève quand il n’y en a qu’une, sans écraser un choix', async () => {
+    const [he, en] = await Promise.all(
+      ['he', 'en'].map(async (code, i) =>
+        (await payload.find({ collection: 'languages', where: { code: { equals: code } }, limit: 1 })).docs[0] ??
+        payload.create({ collection: 'languages', data: { code, name: code, order: i } as any }),
+      ),
+    )
+    const single = await payload.create({
+      collection: 'offers',
+      data: { title: 'Hébreu seul', kind: 'single', format: 'individual', price: 35, languages: [he.id] } as any,
+    })
+    const multi = await payload.create({
+      collection: 'offers',
+      data: { title: 'Plusieurs', kind: 'single', format: 'individual', price: 30, languages: [he.id, en.id] } as any,
+    })
+    const mk = (offer: number, extra: object = {}) =>
+      payload.create({
+        collection: 'prestations',
+        data: { student: studentId, date: `${year}-10-03`, description: 'x', quantity: 1, unitPrice: 30, offer, ...extra } as any,
+      })
+
+    const fromOffer = await mk(single.id)
+    expect(typeof fromOffer.language === 'object' ? fromOffer.language?.id : fromOffer.language).toBe(he.id)
+
+    await payload.update({ collection: 'students', id: studentId, data: { languages: [en.id] } as any })
+    const fromStudent = await mk(multi.id)
+    expect(typeof fromStudent.language === 'object' ? fromStudent.language?.id : fromStudent.language).toBe(en.id)
+
+    const chosen = await mk(single.id, { language: en.id })
+    expect(typeof chosen.language === 'object' ? chosen.language?.id : chosen.language).toBe(en.id)
+  })
+})
+
 describe('réservations', () => {
   it('refuse une réservation sur un créneau complet', async () => {
     const slot = await payload.create({

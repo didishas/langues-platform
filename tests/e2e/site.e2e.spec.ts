@@ -77,6 +77,9 @@ test.describe('espace élève', () => {
 })
 
 test.describe('administration', () => {
+  // L'administration suit la langue du navigateur : on la fixe en français pour ce test.
+  test.use({ locale: 'fr-BE' })
+
   test('connexion de l’équipe et accès aux formules', async ({ page }) => {
     await page.goto('/admin/login')
     await page.locator('input[name=email]').fill(data.staff.email)
@@ -84,5 +87,11 @@ test.describe('administration', () => {
     await page.locator('button[type=submit]').click()
     await expect(page).toHaveURL(/\/admin$/)
     await expect(page.getByText('Formules et tarifs').first()).toBeVisible()
+
+    // Tableau de bord en tête de l'accueil, avec la version tableau du graphique.
+    await expect(page.getByRole('heading', { name: 'Votre activité' })).toBeVisible()
+    await expect(page.getByText('Encaissé ce mois-ci')).toBeVisible()
+    await page.getByText('Voir les chiffres').click()
+    await expect(page.locator('.mm-dash__table table tbody tr')).toHaveCount(12)
   })
 })

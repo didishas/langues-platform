@@ -39,6 +39,9 @@ export default buildConfig({
       baseDir: path.resolve(dirname),
     },
     meta: { titleSuffix: ' · Administration' },
+    components: {
+      beforeDashboard: ['/components/admin/TeacherDashboard#TeacherDashboard'],
+    },
   },
   // Interface d'administration en français par défaut.
   i18n: {

@@ -117,6 +117,17 @@ export const BillingSettings: GlobalConfig = {
           ],
         },
         {
+          name: 'taxReservePercent',
+          label: 'Part à mettre de côté pour impôts et cotisations (%)',
+          type: 'number',
+          min: 0,
+          max: 80,
+          admin: {
+            description:
+              'À fixer avec votre comptable. Vide = rien n’est affiché. Le tableau de bord applique ce pourcentage à ce que vous avez encaissé depuis le 1er janvier.',
+          },
+        },
+        {
           name: 'vatMention',
           label: 'Mention imprimée sur les factures',
           type: 'text',

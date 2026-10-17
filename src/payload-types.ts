@@ -521,6 +521,10 @@ export interface Prestation {
    * Reprise de la réduction choisie, modifiable au cas par cas.
    */
   discountPercent?: number | null;
+  /**
+   * Remplie automatiquement si la formule ou l’élève n’a qu’une langue. Sert au tableau de bord.
+   */
+  language?: (number | null) | Language;
   booking?: (number | null) | Booking;
   status?: ('to_invoice' | 'invoiced') | null;
   invoice?: (number | null) | Invoice;
@@ -1014,6 +1018,7 @@ export interface PrestationsSelect<T extends boolean = true> {
   unitPriceCents?: T;
   discount?: T;
   discountPercent?: T;
+  language?: T;
   booking?: T;
   status?: T;
   invoice?: T;
@@ -1252,6 +1257,10 @@ export interface BillingSetting {
   vatRegime: 'franchise' | 'exempt' | 'standard';
   vatRatePercent?: number | null;
   /**
+   * À fixer avec votre comptable. Vide = rien n’est affiché. Le tableau de bord applique ce pourcentage à ce que vous avez encaissé depuis le 1er janvier.
+   */
+  taxReservePercent?: number | null;
+  /**
    * Texte exact fourni par votre comptable.
    */
   vatMention?: string | null;
@@ -1318,6 +1327,7 @@ export interface BillingSettingsSelect<T extends boolean = true> {
   onlinePayments?: T;
   vatRegime?: T;
   vatRatePercent?: T;
+  taxReservePercent?: T;
   vatMention?: T;
   updatedAt?: T;
   createdAt?: T;
