@@ -30,3 +30,7 @@ next-env.d.ts
 # Fichiers téléversés en local (documents, devoirs rendus, images)
 uploads/
 media/
+
+# Résultats Playwright
+test-results/
+playwright-report/

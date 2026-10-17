@@ -35,7 +35,9 @@ export default async function HomePage({ params }: { params: Promise<{ locale: s
   ])
 
   const greetings = languages.filter((l) => l.sample)
-  let wordIndex = 0
+  // Rang du premier mot de chaque phrase, pour que les mots apparaissent les uns après les autres.
+  const wordCounts = greetings.map((l) => (l.sample ?? '').split(/\s+/).length)
+  const offsets = wordCounts.map((_, i) => wordCounts.slice(0, i).reduce((a, b) => a + b, 0))
 
   return (
     <>
@@ -59,9 +61,8 @@ export default async function HomePage({ params }: { params: Promise<{ locale: s
 
           {greetings.length > 0 ? (
             <ul className="greetings" aria-label={t.languages.title}>
-              {greetings.map((l) => {
-                const offset = wordIndex
-                wordIndex += (l.sample ?? '').split(/\s+/).length
+              {greetings.map((l, i) => {
+                const offset = offsets[i]
                 return (
                   <li key={l.id} className="greetings__item" lang={l.code} dir={contentDir(l.code)}>
                     <WordByWord text={l.sample!} offset={offset} />
