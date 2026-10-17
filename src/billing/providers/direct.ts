@@ -48,8 +48,8 @@ export function createDirectProvider(gateway: PaymentGateway | null): BillingPro
       })
     },
 
-    async getPaymentStatus(paymentId) {
-      return gateway ? gateway.getStatus(paymentId) : null
+    async getPayment(paymentId) {
+      return gateway ? gateway.getPayment(paymentId) : null
     },
   }
 }

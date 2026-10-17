@@ -250,6 +250,16 @@ export const Invoices: CollectionConfig = {
         { name: 'paymentId', type: 'text', index: true, admin: { readOnly: true } },
         { name: 'validatedAt', label: 'Validée le', type: 'date', admin: { readOnly: true } },
         { name: 'paidAt', label: 'Payée le', type: 'date', admin: { readOnly: true } },
+        {
+          name: 'paymentIssue',
+          label: 'Anomalie de paiement',
+          type: 'textarea',
+          access: { read: ({ req }) => isStaffUser(req) },
+          admin: {
+            readOnly: true,
+            description: 'Un paiement reçu ne correspondait pas à cette facture : il n’a pas été accepté. À vérifier dans Mollie.',
+          },
+        },
       ],
     },
   ],

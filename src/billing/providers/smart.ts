@@ -40,7 +40,7 @@ export const smartProvider: BillingProvider = {
     return null
   },
 
-  async getPaymentStatus() {
+  async getPayment() {
     return null
   },
 }

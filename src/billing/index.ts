@@ -17,16 +17,25 @@ export function resolveProviderId(settings: BillingSettings, at: Date = new Date
   return at.getTime() >= new Date(settings.switchDate).getTime() ? 'smart' : 'direct'
 }
 
+/** Passerelle de paiement configurée par l'environnement, ou `null` si aucune clé Mollie n'est définie. */
+export function getConfiguredGateway(): PaymentGateway | null {
+  const key = process.env.MOLLIE_API_KEY
+  return key ? createMollieGateway(key, { baseUrl: process.env.MOLLIE_API_BASE_URL || undefined }) : null
+}
+
+/**
+ * Fournisseur direct avec la passerelle configurée, quel que soit le fournisseur actif :
+ * un paiement d'une facture de la phase 1 doit pouvoir être vérifié même après la bascule vers Smart.
+ */
+export function getDirectProviderForPayments(gateway: PaymentGateway | null = getConfiguredGateway()): BillingProvider {
+  return createDirectProvider(gateway)
+}
+
 export function getBillingProvider(
   settings: BillingSettings,
   options: { at?: Date; gateway?: PaymentGateway | null } = {},
 ): BillingProvider {
   if (resolveProviderId(settings, options.at) === 'smart') return smartProvider
-  const gateway =
-    options.gateway !== undefined
-      ? options.gateway
-      : process.env.MOLLIE_API_KEY
-        ? createMollieGateway(process.env.MOLLIE_API_KEY)
-        : null
+  const gateway = options.gateway !== undefined ? options.gateway : getConfiguredGateway()
   return createDirectProvider(gateway)
 }

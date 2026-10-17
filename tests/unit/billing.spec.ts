@@ -1,7 +1,7 @@
 import { describe, expect, it, vi } from 'vitest'
 
 import { getBillingProvider, resolveProviderId, toSmartCsv } from '@/billing'
-import { createMollieGateway } from '@/billing/gateways/mollie'
+import { createMollieGateway, parseAmountToCents } from '@/billing/gateways/mollie'
 import { createDirectProvider } from '@/billing/providers/direct'
 import { smartProvider } from '@/billing/providers/smart'
 import {
@@ -34,7 +34,13 @@ const input: PrepareInvoiceInput = {
 
 const fakeGateway = (): PaymentGateway => ({
   createPayment: vi.fn(async () => ({ paymentId: 'tr_1', checkoutUrl: 'https://pay.example/tr_1' })),
-  getStatus: vi.fn(async () => 'paid' as const),
+  getPayment: vi.fn(async (id: string) => ({
+    id,
+    status: 'paid' as const,
+    amountCents: 8000,
+    currency: 'EUR',
+    reference: 'F2026-0007',
+  })),
 })
 
 describe('communication structurée', () => {
@@ -180,7 +186,7 @@ describe('passerelle Mollie', () => {
         status: 201,
       }),
     )
-    const gw = createMollieGateway('test_key', fetchMock as unknown as typeof fetch)
+    const gw = createMollieGateway('test_key', { fetchImpl: fetchMock as unknown as typeof fetch })
     const res = await gw.createPayment({
       amountCents: 8000,
       description: 'Facture F2026-0007',
@@ -193,8 +199,33 @@ describe('passerelle Mollie', () => {
   })
 
   it('traite les statuts intermédiaires comme ouverts', async () => {
-    const fetchMock = vi.fn(async () => new Response(JSON.stringify({ status: 'pending' })))
-    const gw = createMollieGateway('k', fetchMock as unknown as typeof fetch)
-    expect(await gw.getStatus('tr_1')).toBe('open')
+    const fetchMock = vi.fn(async () => new Response(JSON.stringify({ id: 'tr_1', status: 'pending' })))
+    const gw = createMollieGateway('k', { fetchImpl: fetchMock as unknown as typeof fetch })
+    expect((await gw.getPayment('tr_1')).status).toBe('open')
+  })
+
+  it('relit montant, devise et référence du paiement, sans arrondi flottant', async () => {
+    const fetchMock = vi.fn(
+      async () =>
+        new Response(
+          JSON.stringify({
+            id: 'tr_2',
+            status: 'paid',
+            amount: { value: '37.10', currency: 'EUR' },
+            metadata: { reference: 'F2026-0003' },
+          }),
+        ),
+    )
+    const gw = createMollieGateway('k', { fetchImpl: fetchMock as unknown as typeof fetch })
+    expect(await gw.getPayment('tr_2')).toEqual({
+      id: 'tr_2',
+      status: 'paid',
+      amountCents: 3710,
+      currency: 'EUR',
+      reference: 'F2026-0003',
+    })
+    expect(parseAmountToCents('0.29')).toBe(29)
+    expect(parseAmountToCents('12.5')).toBe(1250)
+    expect(parseAmountToCents('1,00')).toBeNull()
   })
 })

@@ -1,9 +1,9 @@
-import type { Payload, PayloadRequest } from 'payload'
+import { commitTransaction, createLocalReq, initTransaction, killTransaction, type Payload, type PayloadRequest } from 'payload'
 
 import { LOCK, lockInTransaction } from '@/lib/dbLock'
 
-import { getBillingProvider } from './index'
-import type { BillingSettings, Customer, InvoiceDraft, PrestationInput } from './types'
+import { getBillingProvider, getConfiguredGateway, getDirectProviderForPayments } from './index'
+import type { BillingSettings, Customer, InvoiceDraft, PaymentGateway, PrestationInput } from './types'
 
 const today = () => new Date().toISOString().slice(0, 10)
 const idOf = (v: unknown): string | number | undefined =>
@@ -185,4 +185,92 @@ export async function createPaymentLink(
     redirectUrl: `${site}/fr/paiement/merci`,
     webhookUrl: site.startsWith('https://') ? `${site}/api/invoices/payment-webhook` : undefined,
   })
+}
+
+export type PaymentNotificationOutcome =
+  | 'paid'
+  | 'already_paid'
+  | 'not_paid'
+  | 'mismatch'
+  | 'unknown_payment'
+
+/**
+ * Traite une notification de paiement (webhook). Le contenu de la notification n'est jamais cru :
+ * on relit le paiement chez le prestataire, puis on vérifie, dans une transaction verrouillée sur la facture,
+ * le statut, le montant, la devise et le rattachement (référence = numéro de facture, même identifiant de paiement).
+ *
+ * Idempotent : une notification répétée ou simultanée ne marque la facture payée qu'une seule fois.
+ * Une anomalie n'est jamais « payée » : elle est notée sur la facture pour Catherine.
+ */
+export async function handlePaymentNotification(
+  payload: Payload,
+  paymentId: string,
+  gateway: PaymentGateway | null = getConfiguredGateway(),
+): Promise<PaymentNotificationOutcome> {
+  if (!/^[A-Za-z0-9_-]{1,64}$/.test(paymentId)) return 'unknown_payment'
+
+  const found = await payload.find({
+    collection: 'invoices',
+    where: { paymentId: { equals: paymentId } },
+    limit: 1,
+    depth: 0,
+    overrideAccess: true,
+  })
+  const target = found.docs[0]
+  if (!target || target.provider !== 'direct') return 'unknown_payment'
+
+  const provider = getDirectProviderForPayments(gateway)
+  const info = await provider.getPayment(paymentId)
+  if (!info) throw new Error('Aucune passerelle de paiement configurée pour vérifier ce paiement.')
+
+  const req = await createLocalReq({}, payload)
+  await initTransaction(req)
+  try {
+    await lockInTransaction(req, LOCK.invoice, Number(target.id))
+    const invoice = await payload.findByID({ collection: 'invoices', id: target.id, depth: 0, req, overrideAccess: true })
+
+    let outcome: PaymentNotificationOutcome
+    if (invoice.status === 'paid') {
+      outcome = 'already_paid'
+    } else if (info.status !== 'paid') {
+      outcome = 'not_paid'
+    } else {
+      const problems: string[] = []
+      if (info.id !== paymentId || invoice.paymentId !== paymentId) problems.push('identifiant de paiement différent')
+      if (info.currency !== 'EUR') problems.push(`devise ${info.currency ?? 'inconnue'} au lieu de EUR`)
+      if (info.amountCents !== invoice.totalCents) {
+        problems.push(`montant ${info.amountCents ?? '?'} centimes au lieu de ${invoice.totalCents ?? '?'}`)
+      }
+      if (!invoice.number || info.reference !== invoice.number) {
+        problems.push(`référence « ${info.reference ?? ''} » au lieu de « ${invoice.number ?? ''} »`)
+      }
+      if (invoice.status !== 'validated' && invoice.status !== 'sent') problems.push(`facture à l’état « ${invoice.status} »`)
+
+      if (problems.length > 0) {
+        outcome = 'mismatch'
+        await payload.update({
+          collection: 'invoices',
+          id: invoice.id,
+          data: { paymentIssue: `Paiement ${paymentId} non accepté : ${problems.join(', ')}.` },
+          req,
+          overrideAccess: true,
+        })
+        payload.logger.warn({ msg: 'Paiement refusé à la vérification', invoice: invoice.id, paymentId, problems })
+      } else {
+        outcome = 'paid'
+        await payload.update({
+          collection: 'invoices',
+          id: invoice.id,
+          data: { status: 'paid', paidAt: new Date().toISOString(), paymentIssue: null },
+          req,
+          overrideAccess: true,
+        })
+      }
+    }
+    await commitTransaction(req)
+    return outcome
+  } catch (e) {
+    await killTransaction(req)
+    throw e
+  }
 }

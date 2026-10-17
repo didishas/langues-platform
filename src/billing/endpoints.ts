@@ -2,9 +2,8 @@ import type { Endpoint } from 'payload'
 
 import { isStaffUser } from '@/access'
 
-import { getBillingProvider } from './index'
 import { toSmartCsv } from './providers/smart'
-import { loadBillingSettings, prepareDraftInvoice } from './service'
+import { handlePaymentNotification, prepareDraftInvoice } from './service'
 import type { InvoiceDraft } from './types'
 
 const json = (body: unknown, status = 200) => Response.json(body, { status })
@@ -80,7 +79,11 @@ export const smartExportEndpoint: Endpoint = {
   },
 }
 
-/** POST /api/invoices/payment-webhook (id=…) : appelé par le prestataire de paiement. */
+/**
+ * POST /api/invoices/payment-webhook (corps : id=tr_…) — appelé par Mollie.
+ * Mollie n'envoie que l'identifiant du paiement : tout le reste est relu et vérifié côté serveur
+ * (voir handlePaymentNotification). 200 = notification traitée ou ignorée ; 500 = Mollie réessaiera.
+ */
 export const paymentWebhookEndpoint: Endpoint = {
   path: '/payment-webhook',
   method: 'post',
@@ -88,29 +91,12 @@ export const paymentWebhookEndpoint: Endpoint = {
     const form = await req.formData?.().catch(() => null)
     const paymentId = form?.get('id')
     if (typeof paymentId !== 'string') return json({ ok: true })
-
-    // On ne fait jamais confiance au contenu du webhook : on redemande le statut au prestataire.
-    const settings = await loadBillingSettings(req.payload)
-    const provider = getBillingProvider(settings)
-    const gatewayStatus = await provider.getPaymentStatus(paymentId)
-    if (gatewayStatus !== 'paid') return json({ ok: true })
-
-    const found = await req.payload.find({
-      collection: 'invoices',
-      where: { paymentId: { equals: paymentId } },
-      limit: 1,
-      depth: 0,
-      overrideAccess: true,
-    })
-    const invoice = found.docs[0]
-    if (invoice && invoice.status !== 'paid') {
-      await req.payload.update({
-        collection: 'invoices',
-        id: invoice.id,
-        data: { status: 'paid', paidAt: new Date().toISOString() },
-        overrideAccess: true,
-      })
+    try {
+      const outcome = await handlePaymentNotification(req.payload, paymentId)
+      return json({ ok: true, outcome })
+    } catch (e) {
+      req.payload.logger.error({ err: e, msg: 'Notification de paiement non traitée', paymentId })
+      return json({ ok: false }, 500)
     }
-    return json({ ok: true })
   },
 }

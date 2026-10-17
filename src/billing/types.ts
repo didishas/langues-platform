@@ -95,6 +95,16 @@ export interface PrepareInvoiceInput {
 
 export type PaymentStatus = 'open' | 'paid' | 'failed' | 'expired' | 'canceled'
 
+/** Paiement tel que le prestataire le décrit, relu côté serveur. */
+export interface PaymentInfo {
+  id: string
+  status: PaymentStatus
+  amountCents: number | null
+  currency: string | null
+  /** Référence transmise à la création (numéro de facture). */
+  reference: string | null
+}
+
 export interface PaymentRequest {
   paymentId: string
   checkoutUrl: string
@@ -109,7 +119,7 @@ export interface PaymentGateway {
     redirectUrl: string
     webhookUrl?: string
   }): Promise<PaymentRequest>
-  getStatus(paymentId: string): Promise<PaymentStatus>
+  getPayment(paymentId: string): Promise<PaymentInfo>
 }
 
 export interface PaymentContext {
@@ -128,6 +138,6 @@ export interface BillingProvider {
     settings: BillingSettings,
     context: PaymentContext,
   ): Promise<PaymentRequest | null>
-  /** Statut d'un paiement en ligne, redemandé au prestataire (jamais lu depuis le webhook). */
-  getPaymentStatus(paymentId: string): Promise<PaymentStatus | null>
+  /** Paiement redemandé au prestataire (jamais lu depuis la notification ni l'URL de retour). */
+  getPayment(paymentId: string): Promise<PaymentInfo | null>
 }

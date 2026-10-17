@@ -591,6 +591,10 @@ export interface Invoice {
   paymentId?: string | null;
   validatedAt?: string | null;
   paidAt?: string | null;
+  /**
+   * Un paiement reçu ne correspondait pas à cette facture : il n’a pas été accepté. À vérifier dans Mollie.
+   */
+  paymentIssue?: string | null;
   updatedAt: string;
   createdAt: string;
 }
@@ -1064,6 +1068,7 @@ export interface InvoicesSelect<T extends boolean = true> {
   paymentId?: T;
   validatedAt?: T;
   paidAt?: T;
+  paymentIssue?: T;
   updatedAt?: T;
   createdAt?: T;
 }
