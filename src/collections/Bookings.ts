@@ -1,6 +1,7 @@
-import type { CollectionConfig } from 'payload'
+import { APIError, type CollectionConfig } from 'payload'
 
 import { ownStudentDocsOrStaff, staffOnly } from '@/access'
+import { LOCK, lockInTransaction } from '@/lib/dbLock'
 
 export const Bookings: CollectionConfig = {
   slug: 'bookings',
@@ -18,14 +19,17 @@ export const Bookings: CollectionConfig = {
   hooks: {
     beforeChange: [
       async ({ data, req, originalDoc, operation }) => {
-        const slotId = typeof data.slot === 'object' ? data.slot?.id : data.slot
-        const becomesActive = data.status !== 'cancelled'
-        const wasActive = originalDoc && originalDoc.status !== 'cancelled'
-        const slotChanged =
-          operation === 'create' ||
-          (originalDoc && (typeof originalDoc.slot === 'object' ? originalDoc.slot?.id : originalDoc.slot) !== slotId)
+        const idOf = (v: unknown) => (v && typeof v === 'object' ? (v as { id: number }).id : (v as number | undefined))
+        const slotId = idOf(data.slot ?? originalDoc?.slot)
+        const status = data.status ?? originalDoc?.status ?? 'requested'
+        const becomesActive = status !== 'cancelled'
+        const wasActive = operation === 'update' && originalDoc && originalDoc.status !== 'cancelled'
+        const slotChanged = operation === 'create' || idOf(originalDoc?.slot) !== slotId
         if (!slotId || !becomesActive || (wasActive && !slotChanged)) return data
 
+        // Une seule vérification de capacité à la fois par créneau : la demande suivante attend que
+        // la précédente soit enregistrée, puis compte les places avec elle.
+        await lockInTransaction(req, LOCK.slotBooking, slotId)
         const slot = await req.payload.findByID({ collection: 'slots', id: slotId, req, depth: 0 })
         const taken = await req.payload.count({
           collection: 'bookings',
@@ -33,7 +37,7 @@ export const Bookings: CollectionConfig = {
           where: { and: [{ slot: { equals: slotId } }, { status: { not_equals: 'cancelled' } }] },
         })
         if (taken.totalDocs >= (slot.capacity ?? 1)) {
-          throw new Error('Ce créneau est complet.')
+          throw new APIError('Ce créneau est complet. Choisissez un autre créneau.', 409, null, true)
         }
         return data
       },

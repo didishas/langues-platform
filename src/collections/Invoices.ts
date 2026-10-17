@@ -4,6 +4,27 @@ import { isStaffUser, staffOnly } from '@/access'
 import { paymentWebhookEndpoint, prepareEndpoint, smartExportEndpoint } from '@/billing/endpoints'
 import { createPaymentLink, finalizeOnValidation } from '@/billing/service'
 import { euroAmountFields } from '@/fields'
+import { LOCK, lockInTransaction } from '@/lib/dbLock'
+
+/** Champs fixés au moment de la validation ; recopiés tels quels si la facture vient d'être validée ailleurs. */
+const FINALIZED_FIELDS = [
+  'number',
+  'structuredCommunication',
+  'issueDate',
+  'dueDate',
+  'validatedAt',
+  'lines',
+  'customer',
+  'subtotalCents',
+  'vatRatePercent',
+  'vatCents',
+  'totalCents',
+  'vatMention',
+  'delivery',
+  'provider',
+  'paymentId',
+  'paymentUrl',
+] as const
 
 const idOf = (v: unknown) => (v && typeof v === 'object' ? (v as { id: string | number }).id : v)
 
@@ -43,7 +64,18 @@ export const Invoices: CollectionConfig = {
           const from = originalDoc.status
           const to = data.status ?? from
           if (from === 'to_validate' && to === 'validated') {
-            Object.assign(data, await finalizeOnValidation(req.payload, originalDoc, req))
+            // Double clic, deux onglets : une seule validation à la fois pour une même facture.
+            // Après le verrou, on relit la facture : si une autre requête vient de la valider,
+            // on garde son numéro au lieu d'en consommer un second.
+            await lockInTransaction(req, LOCK.invoice, Number(originalDoc.id))
+            const fresh = await req.payload.findByID({ collection: 'invoices', id: originalDoc.id, req, depth: 0 })
+            if (fresh.status !== 'to_validate') {
+              for (const key of FINALIZED_FIELDS) data[key] = (fresh as unknown as Record<string, unknown>)[key]
+              data.status = fresh.status
+            } else {
+              Object.assign(data, await finalizeOnValidation(req.payload, originalDoc, req))
+              req.context.finalizedInvoice = originalDoc.id
+            }
           } else if (from !== 'to_validate' && to === 'to_validate') {
             throw new Error('Une facture validée ne peut pas redevenir un brouillon.')
           } else if (from === 'to_validate' && (to === 'sent' || to === 'paid')) {
@@ -59,10 +91,11 @@ export const Invoices: CollectionConfig = {
       },
     ],
     afterChange: [
-      async ({ doc, previousDoc, req, operation }) => {
-        if (operation !== 'update' || previousDoc?.status !== 'to_validate' || doc.status !== 'validated') {
-          return doc
-        }
+      async ({ doc, req, operation }) => {
+        // Effets de la validation (prestations facturées, lien de paiement) : une seule fois,
+        // par la requête qui a réellement attribué le numéro.
+        if (operation !== 'update' || req.context.finalizedInvoice !== doc.id) return doc
+        req.context.finalizedInvoice = undefined
         for (const line of doc.lines ?? []) {
           const prestationId = idOf(line.prestation)
           if (prestationId) {

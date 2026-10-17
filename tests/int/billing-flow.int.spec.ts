@@ -9,6 +9,12 @@ let payload: Payload
 let studentId: number
 const year = new Date().getFullYear()
 
+/** Numéro attendu pour la prochaine facture, d'après le compteur en base (les autres fichiers de tests en consomment aussi). */
+async function nextNumber(offset = 1) {
+  const res = await payload.find({ collection: 'invoice-counters', where: { year: { equals: year } }, limit: 1 })
+  return `F${year}-${String((res.docs[0]?.last ?? 0) + offset).padStart(4, '0')}`
+}
+
 async function createPrestation(description: string, euros: number) {
   return payload.create({
     collection: 'prestations',
@@ -54,12 +60,13 @@ describe('facturation de bout en bout (base de test)', () => {
     const b = await createPrestation('Cours d’anglais, 60 min', 40)
     const draft = await prepareDraftInvoice(payload, { studentId, prestationIds: [a.id, b.id] })
 
+    const expected = await nextNumber()
     expect(draft.status).toBe('to_validate')
     expect(draft.number ?? null).toBeNull()
     expect(draft.totalCents).toBe(8000)
 
     const validated = await payload.update({ collection: 'invoices', id: draft.id, data: { status: 'validated' } })
-    expect(validated.number).toBe(`F${year}-0001`)
+    expect(validated.number).toBe(expected)
     expect(isValidStructuredCommunication(validated.structuredCommunication!)).toBe(true)
     expect(validated.vatMention).toBe('Régime particulier de franchise des petites entreprises')
 
@@ -74,9 +81,10 @@ describe('facturation de bout en bout (base de test)', () => {
     const freed = await payload.findByID({ collection: 'prestations', id: p1.id })
     expect(freed.invoice ?? null).toBeNull()
 
+    const expected = await nextNumber()
     const again = await prepareDraftInvoice(payload, { studentId, prestationIds: [p1.id] })
     const validated = await payload.update({ collection: 'invoices', id: again.id, data: { status: 'validated' } })
-    expect(validated.number).toBe(`F${year}-0002`)
+    expect(validated.number).toBe(expected)
   })
 
   it('refuse de facturer deux fois la même prestation', async () => {

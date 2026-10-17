@@ -1,5 +1,7 @@
 import type { Payload, PayloadRequest } from 'payload'
 
+import { LOCK, lockInTransaction } from '@/lib/dbLock'
+
 import { getBillingProvider } from './index'
 import type { BillingSettings, Customer, InvoiceDraft, PrestationInput } from './types'
 
@@ -122,8 +124,13 @@ export async function prepareDraftInvoice(
   return invoice
 }
 
-/** Réserve le prochain numéro d'ordre de l'année (numérotation continue, sans trou). */
-export async function nextSequence(payload: Payload, year: number, req?: PayloadRequest): Promise<number> {
+/**
+ * Réserve le prochain numéro d'ordre de l'année (numérotation continue, sans trou).
+ * Le compteur est verrouillé jusqu'à la fin de la transaction de validation : deux validations
+ * simultanées reçoivent des numéros distincts, et un numéro n'est consommé que si la validation aboutit.
+ */
+export async function nextSequence(payload: Payload, year: number, req: PayloadRequest): Promise<number> {
+  await lockInTransaction(req, LOCK.invoiceCounter, year)
   const found = await payload.find({
     collection: 'invoice-counters',
     where: { year: { equals: year } },
@@ -148,7 +155,7 @@ export async function nextSequence(payload: Payload, year: number, req?: Payload
 export async function finalizeOnValidation(
   payload: Payload,
   original: Record<string, any>,
-  req?: PayloadRequest,
+  req: PayloadRequest,
 ): Promise<Record<string, unknown>> {
   const settings = await loadBillingSettings(payload, req)
   const provider = getBillingProvider(settings, { gateway: null })
