@@ -1,60 +1,77 @@
-# Plateforme cours de langues — instructions pour Claude
+# MotàMot — plateforme de cours de langues
 
-Plateforme de cours de langues (hébreu, anglais, espagnol, français, roumain) pour une professeure indépendante en Belgique.
-Elle n'est pas développeuse : tout ce qu'elle doit modifier passe par le CMS, jamais par le code.
-Référence fonctionnelle : le cahier des charges « Plateforme cours de langues — Cahier des charges ».
+Site et outil de travail de Catherine, professeure indépendante en Belgique : hébreu, anglais, espagnol, français, roumain. Interface en français, anglais, hébreu. Elle n'est pas développeuse : tout ce qu'elle gère passe par l'administration, jamais par le code.
 
-## Stack
+Le cahier des charges (doc partagé « Plateforme cours de langues — Cahier des charges ») décrit la cible, pas l'existant. Ne développer que le périmètre demandé.
 
-- Next.js (App Router, TypeScript strict)
-- Payload CMS intégré à Next.js
-- Supabase : Postgres, authentification, stockage de fichiers
-- Visio : pour l'instant, Zoom ou Google Meet au choix sur chaque créneau, avec un lien habituel par outil dans « Réglages des cours » ; le lien n'est visible par l'élève qu'une fois la réservation confirmée. Salle intégrée au site (LiveKit) reportée à plus tard, sur décision de Didier.
-- Vidéos de cours : Bunny Stream
-- Paiements phase 1 : Mollie (Bancontact, carte, SEPA)
-- Mails transactionnels : Resend ou Brevo
+## Repères (vérifiés le 17/10/2026)
+
+- `src/collections/`, `src/globals/` : modèle de données et règles d'accès Payload. `src/access/` : fonctions d'accès communes.
+- `src/billing/` : facturation (seul endroit qui connaît Mollie ou Smart). `src/lib/dbLock.ts` : verrous Postgres.
+- `src/app/(frontend)/[locale]/` : site public et espace élève (`espace/`). `src/i18n/` : langues, sens d'écriture, textes de l'interface.
+- `src/seed/` : contenu de départ et élève de démonstration. `tests/unit`, `tests/int` (Postgres), `tests/e2e` (Playwright).
+
+Commandes (pnpm, lockfile présent) :
+
+| Commande | État au 17/10/2026 |
+| --- | --- |
+| `docker compose up -d` | fichier fourni, non exécuté ici (Postgres installé directement) |
+| `pnpm install`, `pnpm dev`, `pnpm seed`, `pnpm seed:demo` | OK |
+| `pnpm typecheck` | OK |
+| `pnpm lint` | OK, 0 erreur (avertissements `any` dans les tests) |
+| `pnpm test:int` | OK : unitaires + intégration sur `TEST_DATABASE_URL` (base `*_test`, vidée à chaque lancement) |
+| `pnpm test:e2e` | OK : serveur de dev + base de dev seedée ; navigateur via `pnpm exec playwright install chromium` ou `PLAYWRIGHT_CHROMIUM_EXECUTABLE` |
+| `pnpm build` | OK |
+
+Variables : voir `.env.example`. Aucune valeur réelle dans le dépôt.
+
+## Décisions prises
+
+- Stack adoptée : Next.js 16 (App Router), Payload 3, PostgreSQL. **Pas de Supabase** : Payload possède comptes, droits et schéma.
+- Deux types de comptes Payload : `users` (équipe) et `students` (élèves, sans accès à l'administration).
+- Visio : Zoom ou Google Meet au choix par créneau, liens habituels dans « Réglages des cours ». Lien visible seulement pour une réservation confirmée. Salle intégrée (LiveKit) reportée, décision de Didier.
+- Facturation : les prestations sont la source de vérité. Fournisseur `direct` (phase 1) ou `smart` (phase 2) par réglage et date de bascule. Une facture naît « à valider » et reçoit numéro et communication structurée à la validation.
+- Identité : nom MotàMot, police Rubik, palette `#23225c` (encre), `#4a47c9` (indigo), `#f6c7ba` / `#fce6df` (pêche), `#a8492f` (texte corail), `#fff8f5` (fond).
+
+Une décision qui change passe par Didier : mettre ce fichier à jour au lieu d'empiler une règle contraire.
 
 ## Règles non négociables
 
-1. **RTL partout.** L'hébreu s'écrit de droite à gauche. Toute page, composant, exercice, PDF et e-mail doit fonctionner en RTL.
-   - Utiliser les propriétés CSS logiques (`margin-inline-start`, `padding-inline-end`, `text-align: start`), jamais `left`/`right` en dur.
-   - `dir` est défini à partir de la langue du contenu, pas de la langue de l'interface.
-   - Tout nouveau composant est vérifié en `dir="rtl"` avant d'être considéré comme terminé.
-2. **Facturation abstraite.** Le site enregistre des *prestations* (séance, forfait, abonnement), jamais des factures en direct.
-   - Toute facturation passe par l'interface `BillingProvider`.
-   - `DirectProvider` (phase 1, indépendante) : numérotation propre, paiement Mollie ou virement avec communication structurée, PDF pour les particuliers, Peppol pour les clients entreprises.
-   - `SmartProvider` (phase 2, via Smart) : prépare les demandes de facture pour Smart, suit les statuts par rapprochement ; les paiements en ligne sont désactivés.
-   - Le fournisseur actif et la date de bascule sont un réglage, pas une branche de code.
-   - Aucun code métier hors de `billing/` ne connaît Mollie ou Smart.
-   - Les factures de la phase 1 restent consultables et exportables après la bascule.
-3. **Rien ne part sans elle.** Aucun e-mail, aucune facture, aucune relance n'est envoyé automatiquement par un agent : tout passe par une file de validation.
-4. **Tout ce qu'elle modifie est éditable dans le CMS** : textes, tarifs, langues, niveaux, vidéos, exercices, FAQ. Si une donnée de contenu est en dur dans le code, c'est un bug.
-5. **RGPD.** Consentement explicite avant d'enregistrer une séance, accord parental pour les élèves mineurs, suppression des données d'un élève sur demande.
+- **Hébreu** : `dir` d'après la langue du contenu, pas de l'interface ; propriétés CSS logiques seulement ; `dir="auto"` ou `<bdi>` pour les fragments mixtes (titres, références, nombres). Vérifier le rendu fr et he, mobile et ordinateur.
+- **Rien ne part sans Catherine** : aucun e-mail, facture, relance, paiement ou modification de rendez-vous déclenché sans sa validation, vérifiée côté serveur (action, destinataire, contenu, montant, version approuvée).
+- **Contenu éditable** : tout texte, tarif ou réglage qu'elle peut vouloir changer vit dans le CMS ou dans `src/i18n/`.
+- **Accès** : identité et droit contrôlés côté serveur sur chaque ressource (pages, actions, API, fichiers). Lire « en tant que » l'élève avec `overrideAccess: false`. Tout contournement (`overrideAccess: true`) est justifié en commentaire et limité aux données de cet élève.
+- **Fichiers privés** : documents et devoirs rendus jamais publics ; types et tailles limités.
+- **Argent** : centimes entiers. Ne jamais confirmer un paiement depuis l'URL de retour : relire chez le prestataire, vérifier statut, montant, devise et référence. Notifications idempotentes. Pas d'API Smart inventée : export CSV tant qu'aucune intégration officielle n'est confirmée.
+- **Réglementaire** : TVA, mentions, Peppol, modalités Smart et règles RGPD sont à valider (comptable, Smart) avant production ; les valeurs du cahier des charges ne sont pas des constantes approuvées.
+- **Données** : jamais de secrets, de données d'élèves réelles ni d'enregistrements dans le dépôt, les logs, les captures ou les prompts. Données fictives et modes test seulement.
 
-## Modèle de contenu
+## Pièges connus
 
-- Chaque langue est structurée par niveaux CECRL (A1 à C2) ; contenus, exercices et progression s'y rattachent.
-- Une vidéo de cours peut avoir zéro ou un bloc d'exercices (QCM, texte à trous, association, réponse audio). Le bloc est optionnel et géré dans le CMS.
-- Les exercices corrigeables sont corrigés automatiquement ; les réponses libres et audio attendent sa correction.
-- Un clavier virtuel hébreu est disponible dans les exercices.
+- Toute règle « vérifier puis écrire » soumise à concurrence (places, numéros, paiements) passe par `lockInTransaction` dans la transaction de la requête, puis relit les données. Chaque cas a un test de concurrence répété (`Promise.allSettled` sur Postgres).
+- En développement, Payload aligne le schéma automatiquement et **attend une confirmation interactive** si un changement peut perdre des données : un script qui semble bloqué au démarrage attend cela. Vider la base de dev ou répondre. La production devra utiliser des migrations (`pnpm payload migrate:create`), pas encore en place.
+- Les numéros de facture sont partagés entre fichiers de tests : écrire les attentes relativement au compteur.
+- Payload renomme un fichier déjà existant (`copie-1.pdf`).
+- Next.js 16 : consulter `node_modules/next/dist/docs/` avant d'utiliser une API.
 
-## Espaces et dashboards
+## Manière de travailler
 
-- Espace élève : devoirs, TP, échéances, corrections, documents partagés, enregistrements de séances, messagerie avec la prof.
-- Dashboard prof : revenus par mois et par langue, heures données vs prévues, remplissage des créneaux, élèves actifs/nouveaux/perdus, impayés, devoirs à corriger, réserve impôts et cotisations (phase 1).
-- Progression élève : radar des 6 compétences, courbe de niveau CECRL, assiduité, vocabulaire acquis.
+- Répondre en français, court et concret. Pour un changement important : plan et critères de réussite d'abord.
+- Une tranche fonctionnelle à la fois ; réutiliser l'existant ; pas d'abstraction sans besoin établi.
+- Poser seulement les questions qui changent le résultat ; signaler toute contradiction touchant données, coûts, droits ou comportement métier.
+- Ne pas réécrire l'historique Git, supprimer des données, lancer une migration destructive, déployer ou souscrire un service payant sans accord explicite de Didier.
+- Comptes des services au nom de Catherine ; accès technique séparé et limité.
 
-## Conventions
+## Vérification et livraison
 
-- Interface du site : français, anglais, hébreu au minimum (i18n via fichiers de traduction, pas de texte en dur).
-- Montants en euros, stockés en centimes (entiers).
-- Dates stockées en UTC, affichées en Europe/Brussels.
-- Tests : chaque `BillingProvider` a ses tests ; chaque composant d'exercice a un test en RTL.
-- Les secrets ne vont jamais dans le dépôt.
+- Lancer réellement typecheck, lint, tests et build pertinents ; ne jamais désactiver une protection pour obtenir du vert.
+- Bug corrigé = test qui le reproduit (vu échouer avant, passer après). Cas négatifs pour accès, paiements, réservations.
+- Changement visuel : regarder le rendu (fr et he, mobile et ordinateur) ou dire que ce n'est pas fait.
+- Conclure par : livré, contrôles exécutés et résultats, limites. Distinguer « implémenté », « testé localement », « déployé ».
 
-## Ce qui n'est pas dans ce dépôt
+## Hors de ce dépôt
 
-Le tuteur des enfants est une application séparée (dépôt `kids-tutor`), locale, sans aucun lien de données avec cette plateforme.
+Le tuteur des enfants (dépôt `kids-tutor`) est une application locale séparée, sans compte ni donnée partagés avec cette plateforme. Suivi des tâches : README et outils de suivi, pas ce fichier.
 
 <!-- BEGIN:nextjs-agent-rules -->
 

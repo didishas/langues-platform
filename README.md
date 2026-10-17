@@ -39,11 +39,14 @@ Les fichiers sont privés : ils ne s'ouvrent que pour l'élève concerné et l'�
 ## Tests
 
 ```bash
-pnpm vitest run --project unit   # facturation, sans base
-pnpm vitest run --project int    # parcours complets sur une base Postgres *_test (TEST_DATABASE_URL)
+pnpm typecheck
+pnpm lint
+pnpm test:int    # unitaires + intégration sur Postgres (TEST_DATABASE_URL, base *_test vidée à chaque lancement)
+pnpm test:e2e    # parcours dans un navigateur, sur le serveur et la base de dev (après pnpm seed)
+pnpm build
 ```
 
-La base de test est vidée à chaque lancement ; le script refuse toute base dont le nom ne finit pas par `_test`.
+Les tests d'intégration couvrent notamment les situations simultanées réelles sur Postgres : dernière place d'un cours, numéros de facture, double validation, notifications de paiement répétées, avec un faux serveur Mollie local. Pour `test:e2e`, installer le navigateur une fois avec `pnpm exec playwright install chromium`.
 
 ## Facturation
 
@@ -52,7 +55,7 @@ Tout passe par `src/billing/`. Le reste du code ne connaît ni Mollie ni Smart.
 - Les **prestations** sont la source de vérité ; une facture se prépare à partir d'elles (`POST /api/invoices/prepare`).
 - Une facture naît **à valider**, sans numéro. Le numéro continu (`F2026-0001`) et la communication structurée sont attribués **à la validation** ; une facture validée ne se supprime plus.
 - **Réglages de facturation** dans le CMS : « Moi, comme indépendante » ou « Smart », avec une date de bascule. Avec Smart, pas de numéro propre ni de paiement en ligne ; export CSV des demandes via `GET /api/invoices/smart-export`.
-- Paiement en ligne (phase 1) : variable `MOLLIE_API_KEY` + case « Paiement en ligne » dans le CMS.
+- Paiement en ligne (phase 1) : variable `MOLLIE_API_KEY` + case « Paiement en ligne » dans le CMS. Chaque notification de Mollie est revérifiée chez Mollie (statut, montant, devise, référence) ; un paiement non conforme n'est jamais accepté et apparaît comme « Anomalie de paiement » sur la facture.
 
 ## À confirmer avant la mise en ligne
 
@@ -64,3 +67,11 @@ Le contenu de départ reprend le pitch MotàMot. Ces éléments restent à valid
 - le texte « À propos » (section masquée tant qu'il est vide) ;
 - les traductions anglaises et hébraïques ;
 - le régime de TVA et la mention légale, avec le comptable.
+
+## À faire avant l'ouverture aux vrais élèves
+
+- Fuseaux horaires : afficher l'heure de Bruxelles explicitement, ou l'heure locale de l'élève (élèves en Israël, en Roumanie…).
+- Droits du compte technique : le distinguer des droits de Catherine (aujourd'hui identiques).
+- RGPD : export et suppression des données d'un élève, durée de conservation, textes validés.
+- Migrations de base de données pour la production (aujourd'hui, schéma aligné automatiquement en développement).
+- Stockage des fichiers hors du serveur (stockage objet) et envoi d'e-mails.
