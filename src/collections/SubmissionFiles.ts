@@ -30,7 +30,8 @@ export const SubmissionFiles: CollectionConfig = {
   upload: {
     // Fichiers privés : servis uniquement via l'API, qui applique les règles d'accès.
     staticDir: path.resolve(process.cwd(), 'uploads', 'submission-files'),
-    mimeTypes: ['application/pdf', 'image/*', 'audio/*', 'application/vnd.openxmlformats-officedocument.*', 'application/msword', 'text/plain'],
+    // `video/webm` : les enregistrements audio faits dans le navigateur sont des fichiers WebM, reconnus comme « vidéo ».
+    mimeTypes: ['application/pdf', 'image/*', 'audio/*', 'video/webm', 'application/vnd.openxmlformats-officedocument.*', 'application/msword', 'text/plain'],
   },
   fields: [
     { name: 'owner', label: 'Élève', type: 'relationship', relationTo: 'students', admin: { readOnly: true } },

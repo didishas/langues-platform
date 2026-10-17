@@ -12,6 +12,7 @@ import { Assignments } from './collections/Assignments'
 import { Bookings } from './collections/Bookings'
 import { Discounts } from './collections/Discounts'
 import { Documents } from './collections/Documents'
+import { ExerciseAttempts } from './collections/ExerciseAttempts'
 import { InvoiceCounters } from './collections/InvoiceCounters'
 import { Invoices } from './collections/Invoices'
 import { Languages } from './collections/Languages'
@@ -24,6 +25,7 @@ import { SubmissionFiles } from './collections/SubmissionFiles'
 import { Submissions } from './collections/Submissions'
 import { TrialRequests } from './collections/TrialRequests'
 import { Users } from './collections/Users'
+import { Videos } from './collections/Videos'
 import { BillingSettings } from './globals/BillingSettings'
 import { SiteSettings } from './globals/SiteSettings'
 import { TeachingSettings } from './globals/TeachingSettings'
@@ -64,6 +66,8 @@ export default buildConfig({
     Submissions,
     SubmissionFiles,
     Documents,
+    Videos,
+    ExerciseAttempts,
     Slots,
     Bookings,
     Prestations,

@@ -32,16 +32,31 @@ Catherine crée le compte de l'élève dans l'administration (Élèves), avec un
 
 - ses prochaines séances, avec le bouton « Rejoindre sur Zoom » ou « Rejoindre sur Google Meet » une fois la réservation confirmée. Catherine enregistre ses liens habituels dans Agenda > Réglages des cours ; ils se remplissent tout seuls sur chaque créneau, et restent modifiables au cas par cas ;
 - ses devoirs et TP publiés, qu'il rend avec un texte et des fichiers (5 fichiers de 10 Mo au plus) ; une remise ne se modifie que si Catherine la renvoie « à refaire » ;
-- les documents partagés avec lui et ses factures validées.
+- les documents partagés avec lui et ses factures validées ;
+- la vidéothèque (voir ci-dessous).
 
 Les fichiers sont privés : ils ne s'ouvrent que pour l'élève concerné et l'équipe. En local ils sont rangés dans `uploads/` (hors dépôt) ; en production il faudra un stockage objet (Supabase Storage ou S3).
+
+## Vidéothèque et exercices
+
+Dans l'administration, Élèves > Vidéothèque : Catherine envoie une vidéo (MP4 ou WebM, 500 Mo au plus), choisit la langue, le niveau
+et qui la voit (les élèves de cette langue, tous les élèves ou des élèves choisis), puis ajoute si elle veut des exercices :
+QCM, texte à trous (mots à trouver entre crochets, variantes séparées par `|`), paires à associer, réponse orale.
+Une vidéo n'apparaît qu'une fois cochée « Visible par les élèves ».
+
+- La correction se fait sur le serveur : les bonnes réponses ne sont jamais envoyées au navigateur avant la réponse de l'élève.
+  Majuscules, espaces, ponctuation finale et voyelles hébraïques sont ignorés ; les accents comptent.
+- Les exercices s'affichent dans le sens de la langue de la vidéo (hébreu de droite à gauche), avec un clavier hébreu à l'écran
+  (lettres dans l'ordre de l'alphabet) pour les textes à trous.
+- Les réponses orales arrivent dans Élèves > Réponses aux exercices, état « À écouter », et sont comptées dans le « À faire » du tableau de bord.
+- Le fichier vidéo est privé, servi seulement aux élèves qui ont le droit de voir la vidéo.
 
 ## Tableau de bord de Catherine
 
 En tête de l'accueil de l'administration, dans la langue choisie pour l'administration (français, anglais, hébreu) :
 encaissé ce mois-ci et par mois, à encaisser, factures en retard, réserve impôts et cotisations (seulement si un pourcentage
 est saisi dans les réglages de facturation, à fixer avec le comptable), montant par langue, heures données et remplissage,
-élèves actifs, nouveaux et à relancer, devoirs à corriger et demandes de cours d'essai. Chaque chiffre affiche sa définition.
+élèves actifs, nouveaux et à relancer, devoirs à corriger, réponses orales à écouter et demandes de cours d'essai. Chaque chiffre affiche sa définition.
 
 ## Tests
 
@@ -81,4 +96,5 @@ Le contenu de départ reprend le pitch MotàMot. Ces éléments restent à valid
 - Droits du compte technique : le distinguer des droits de Catherine (aujourd'hui identiques).
 - RGPD : export et suppression des données d'un élève, durée de conservation, textes validés.
 - Migrations de base de données pour la production (aujourd'hui, schéma aligné automatiquement en développement).
-- Stockage des fichiers hors du serveur (stockage objet) et envoi d'e-mails.
+- Stockage des fichiers hors du serveur (stockage objet) et envoi d'e-mails. Indispensable pour les vidéos : sur le serveur du site, chaque vidéo passe par la mémoire du serveur à l'envoi et occupe son disque.
+- Consentement des élèves à l'enregistrement de leur voix (réponses orales) et durée de conservation de ces enregistrements.

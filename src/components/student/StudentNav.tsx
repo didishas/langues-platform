@@ -4,11 +4,12 @@ import { logoutStudent } from '@/app/(frontend)/[locale]/espace/actions'
 import type { Locale } from '@/i18n/config'
 import type { StudentDictionary } from '@/i18n/studentDictionaries'
 
-type Section = 'home' | 'assignments' | 'documents' | 'invoices'
+type Section = 'home' | 'assignments' | 'videos' | 'documents' | 'invoices'
 
 const PATHS: Record<Section, string> = {
   home: '',
   assignments: '/devoirs',
+  videos: '/videos',
   documents: '/documents',
   invoices: '/factures',
 }

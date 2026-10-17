@@ -7,6 +7,9 @@
  */
 import 'dotenv/config'
 
+import fs from 'fs'
+import path from 'path'
+
 import config from '@payload-config'
 import { getPayload } from 'payload'
 
@@ -51,6 +54,7 @@ async function demo() {
 
   const existing = await payload.find({ collection: 'students', where: { email: { equals: EMAIL } }, limit: 1 })
   if (existing.docs[0]) {
+    await demoVideos(payload)
     payload.logger.info(`L'élève de démonstration existe déjà : ${EMAIL}`)
     process.exit(0)
   }
@@ -132,6 +136,7 @@ async function demo() {
   await payload.update({ collection: 'invoices', id: draft.id, data: { status: 'validated' } })
 
   await demoHistory(payload)
+  await demoVideos(payload)
 
   payload.logger.info(`Élève de démonstration créé : ${EMAIL} / ${PASSWORD}`)
   process.exit(0)
@@ -197,6 +202,69 @@ async function demoHistory(payload: Awaited<ReturnType<typeof getPayload>>) {
   await payload.create({
     collection: 'slots',
     data: { start: group.toISOString(), end: new Date(group.getTime() + 90 * 60e3).toISOString(), capacity: 4, format: 'group' },
+  })
+}
+
+/** Deux vidéos de démonstration (une image unie et un son, sans personne filmée), dont une avec ses exercices. */
+async function demoVideos(payload: Awaited<ReturnType<typeof getPayload>>) {
+  const TITLE = 'Se présenter en hébreu (démo)'
+  const already = await payload.count({ collection: 'videos', where: { title: { equals: TITLE } } })
+  if (already.totalDocs > 0) return
+  const hebrew = (await payload.find({ collection: 'languages', where: { code: { equals: 'he' } }, limit: 1 })).docs[0]
+  if (!hebrew) return
+  const data = fs.readFileSync(path.resolve(process.cwd(), 'src/seed/assets/demo-video.mp4'))
+  const file = (name: string) => ({ data, mimetype: 'video/mp4', name, size: data.length })
+
+  await payload.create({
+    collection: 'videos',
+    data: {
+      title: TITLE,
+      language: hebrew.id,
+      level: 'A1',
+      visibility: 'language',
+      published: true,
+      showSolutions: true,
+      description: {
+        root: {
+          type: 'root',
+          version: 1,
+          direction: 'rtl',
+          format: '',
+          indent: 0,
+          children: [paragraph('בשיעור הזה לומדים להגיד שלום, להציג את עצמנו ולספור עד שלוש.')],
+        },
+      } as any,
+      exercises: [
+        {
+          blockType: 'mcq',
+          question: 'Comment dit-on « merci » en hébreu ?',
+          options: [{ text: 'תודה', correct: true }, { text: 'שלום' }, { text: 'בבקשה' }],
+          explanation: 'תודה (toda) veut dire merci ; בבקשה (bevakasha), s’il vous plaît.',
+        },
+        {
+          blockType: 'gap',
+          instructions: 'Complétez la présentation de Noa.',
+          text: 'שלום, [אני] נועה. אני [גרה|גר] בבריסל.',
+          explanation: 'אני = je. Au féminin on dit גרה, au masculin גר.',
+        },
+        {
+          blockType: 'matching',
+          instructions: 'Associez chaque nombre à sa traduction.',
+          pairs: [
+            { item: 'אחת', match: 'un' },
+            { item: 'שתיים', match: 'deux' },
+            { item: 'שלוש', match: 'trois' },
+          ],
+        },
+        { blockType: 'audio', prompt: 'Présentez-vous en hébreu : votre prénom et la ville où vous habitez.', maxSeconds: 45 },
+      ],
+    } as any,
+    file: file('se-presenter-demo.mp4'),
+  })
+  await payload.create({
+    collection: 'videos',
+    data: { title: 'Les lettres finales (démo)', language: hebrew.id, level: 'A1', visibility: 'language', published: true } as any,
+    file: file('lettres-finales-demo.mp4'),
   })
 }
 

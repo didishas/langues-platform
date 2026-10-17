@@ -77,6 +77,8 @@ export interface Config {
     submissions: Submission;
     'submission-files': SubmissionFile;
     documents: Document;
+    videos: Video;
+    'exercise-attempts': ExerciseAttempt;
     slots: Slot;
     bookings: Booking;
     prestations: Prestation;
@@ -100,6 +102,8 @@ export interface Config {
     submissions: SubmissionsSelect<false> | SubmissionsSelect<true>;
     'submission-files': SubmissionFilesSelect<false> | SubmissionFilesSelect<true>;
     documents: DocumentsSelect<false> | DocumentsSelect<true>;
+    videos: VideosSelect<false> | VideosSelect<true>;
+    'exercise-attempts': ExerciseAttemptsSelect<false> | ExerciseAttemptsSelect<true>;
     slots: SlotsSelect<false> | SlotsSelect<true>;
     bookings: BookingsSelect<false> | BookingsSelect<true>;
     prestations: PrestationsSelect<false> | PrestationsSelect<true>;
@@ -460,6 +464,137 @@ export interface SubmissionFile {
   focalY?: number | null;
 }
 /**
+ * Vos cours enregistrés. Ajoutez des exercices sous chaque vidéo si vous le souhaitez.
+ *
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "videos".
+ */
+export interface Video {
+  id: number;
+  title: string;
+  language: number | Language;
+  level?: ('A1' | 'A2' | 'B1' | 'B2' | 'C1' | 'C2') | null;
+  /**
+   * Écrite dans la langue du cours : elle s’affiche dans le bon sens d’écriture.
+   */
+  description?: {
+    root: {
+      type: string;
+      children: {
+        type: any;
+        version: number;
+        [k: string]: unknown;
+      }[];
+      direction: ('ltr' | 'rtl') | null;
+      format: 'left' | 'start' | 'center' | 'right' | 'end' | 'justify' | '';
+      indent: number;
+      version: number;
+    };
+    [k: string]: unknown;
+  } | null;
+  exercises?:
+    | (
+        | {
+            question: string;
+            /**
+             * Cochez la ou les bonnes réponses. Avec plusieurs bonnes réponses, l’élève doit toutes les trouver.
+             */
+            options: {
+              text: string;
+              correct?: boolean | null;
+              id?: string | null;
+            }[];
+            explanation?: string | null;
+            id?: string | null;
+            blockName?: string | null;
+            blockType: 'mcq';
+          }
+        | {
+            instructions?: string | null;
+            /**
+             * Mettez chaque mot à trouver entre crochets : « Je [suis] étudiant. » Plusieurs réponses acceptées : « j’[ai|avais] faim ». Majuscules et ponctuation finale sont ignorées, les accents comptent.
+             */
+            text: string;
+            explanation?: string | null;
+            id?: string | null;
+            blockName?: string | null;
+            blockType: 'gap';
+          }
+        | {
+            instructions?: string | null;
+            /**
+             * Écrivez les paires correctes : l’élève verra la colonne de droite dans le désordre.
+             */
+            pairs: {
+              item: string;
+              match: string;
+              id?: string | null;
+            }[];
+            explanation?: string | null;
+            id?: string | null;
+            blockName?: string | null;
+            blockType: 'matching';
+          }
+        | {
+            prompt: string;
+            /**
+             * Vous écouterez les réponses dans « Réponses aux exercices ».
+             */
+            maxSeconds?: number | null;
+            id?: string | null;
+            blockName?: string | null;
+            blockType: 'audio';
+          }
+      )[]
+    | null;
+  visibility: 'language' | 'all' | 'selected';
+  students?: (number | Student)[] | null;
+  showSolutions?: boolean | null;
+  published?: boolean | null;
+  updatedAt: string;
+  createdAt: string;
+  url?: string | null;
+  thumbnailURL?: string | null;
+  filename?: string | null;
+  mimeType?: string | null;
+  filesize?: number | null;
+  width?: number | null;
+  height?: number | null;
+  focalX?: number | null;
+  focalY?: number | null;
+}
+/**
+ * Les réponses orales « à écouter » attendent votre avis ; le reste est corrigé automatiquement.
+ *
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "exercise-attempts".
+ */
+export interface ExerciseAttempt {
+  id: number;
+  title?: string | null;
+  student: number | Student;
+  video: number | Video;
+  exerciseId: string;
+  kind: 'mcq' | 'gap' | 'matching' | 'audio';
+  answers?:
+    | {
+        [k: string]: unknown;
+      }
+    | unknown[]
+    | string
+    | number
+    | boolean
+    | null;
+  score?: number | null;
+  maxScore?: number | null;
+  audio?: (number | null) | SubmissionFile;
+  status: 'graded' | 'to_review' | 'reviewed';
+  feedback?: string | null;
+  reviewedAt?: string | null;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
  * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "slots".
  */
@@ -700,6 +835,14 @@ export interface PayloadLockedDocument {
     | ({
         relationTo: 'documents';
         value: number | Document;
+      } | null)
+    | ({
+        relationTo: 'videos';
+        value: number | Video;
+      } | null)
+    | ({
+        relationTo: 'exercise-attempts';
+        value: number | ExerciseAttempt;
       } | null)
     | ({
         relationTo: 'slots';
@@ -973,6 +1116,102 @@ export interface DocumentsSelect<T extends boolean = true> {
   height?: T;
   focalX?: T;
   focalY?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "videos_select".
+ */
+export interface VideosSelect<T extends boolean = true> {
+  title?: T;
+  language?: T;
+  level?: T;
+  description?: T;
+  exercises?:
+    | T
+    | {
+        mcq?:
+          | T
+          | {
+              question?: T;
+              options?:
+                | T
+                | {
+                    text?: T;
+                    correct?: T;
+                    id?: T;
+                  };
+              explanation?: T;
+              id?: T;
+              blockName?: T;
+            };
+        gap?:
+          | T
+          | {
+              instructions?: T;
+              text?: T;
+              explanation?: T;
+              id?: T;
+              blockName?: T;
+            };
+        matching?:
+          | T
+          | {
+              instructions?: T;
+              pairs?:
+                | T
+                | {
+                    item?: T;
+                    match?: T;
+                    id?: T;
+                  };
+              explanation?: T;
+              id?: T;
+              blockName?: T;
+            };
+        audio?:
+          | T
+          | {
+              prompt?: T;
+              maxSeconds?: T;
+              id?: T;
+              blockName?: T;
+            };
+      };
+  visibility?: T;
+  students?: T;
+  showSolutions?: T;
+  published?: T;
+  updatedAt?: T;
+  createdAt?: T;
+  url?: T;
+  thumbnailURL?: T;
+  filename?: T;
+  mimeType?: T;
+  filesize?: T;
+  width?: T;
+  height?: T;
+  focalX?: T;
+  focalY?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "exercise-attempts_select".
+ */
+export interface ExerciseAttemptsSelect<T extends boolean = true> {
+  title?: T;
+  student?: T;
+  video?: T;
+  exerciseId?: T;
+  kind?: T;
+  answers?: T;
+  score?: T;
+  maxScore?: T;
+  audio?: T;
+  status?: T;
+  feedback?: T;
+  reviewedAt?: T;
+  updatedAt?: T;
+  createdAt?: T;
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema

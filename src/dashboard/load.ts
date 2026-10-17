@@ -19,7 +19,7 @@ export async function loadDashboard(payload: Payload, user: TypedUser, locale: '
   const t = now.getTime()
   const since13Months = new Date(t - 400 * DAY).toISOString()
 
-  const [invoices, prestations, slots, submissions, trials, languages, students, billingGlobal, settings] = await Promise.all([
+  const [invoices, prestations, slots, submissions, trials, languages, students, billingGlobal, settings, oral] = await Promise.all([
     payload.find({ collection: 'invoices', ...as, where: { status: { not_equals: 'cancelled' } } }),
     payload.find({
       collection: 'prestations',
@@ -42,6 +42,7 @@ export async function loadDashboard(payload: Payload, user: TypedUser, locale: '
     payload.find({ collection: 'students', ...as }),
     payload.findGlobal({ slug: 'billing-settings', user, overrideAccess: false, depth: 0 }),
     loadBillingSettings(payload),
+    payload.count({ collection: 'exercise-attempts', user, overrideAccess: false, where: { status: { equals: 'to_review' } } }),
   ])
 
   const slotIds = slots.docs.map((s) => s.id)
@@ -100,6 +101,7 @@ export async function loadDashboard(payload: Payload, user: TypedUser, locale: '
     }),
     submissionsToCorrect: submissions.docs.map((s) => ({ id: s.id, title: s.title ?? '', submittedAt: s.submittedAt ?? null })),
     newTrialRequests: trials.docs.map((r) => ({ id: r.id, name: r.name, createdAt: r.createdAt })),
+    oralToReview: oral.totalDocs,
     taxReservePercent: typeof billingGlobal.taxReservePercent === 'number' ? billingGlobal.taxReservePercent : null,
     directBilling: resolveProviderId(settings, now) === 'direct',
   }

@@ -22,3 +22,14 @@ const RTL_LANGUAGES = new Set(['he', 'ar', 'fa', 'yi'])
  */
 export const contentDir = (languageCode: string | null | undefined): Direction =>
   languageCode && RTL_LANGUAGES.has(languageCode) ? 'rtl' : 'ltr'
+
+/**
+ * Sens d'un texte libre écrit par Catherine, qui mélange souvent les langues
+ * (« תודה (toda) veut dire merci ») : la majorité des lettres décide, pas la première comme `dir="auto"`.
+ */
+export function textDir(text: string | null | undefined): Direction {
+  if (!text) return 'ltr'
+  const rtl = (text.match(/[֐-׿؀-ۿ]/g) ?? []).length
+  const ltr = (text.match(/[A-Za-zÀ-ɏͰ-ϿЀ-ӿ]/g) ?? []).length
+  return rtl > ltr ? 'rtl' : 'ltr'
+}

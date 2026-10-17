@@ -248,6 +248,13 @@ function Todo({ d, t, locale, admin }: { d: Dashboard; t: DashboardText; locale:
       </li>,
     )
   }
+  if (d.todo.oralToReview > 0) {
+    items.push(
+      <li key="oral">
+        <a href={`${admin}/collections/exercise-attempts?where[status][equals]=to_review`}>{t.todo.oral(d.todo.oralToReview)}</a>
+      </li>,
+    )
+  }
   if (d.money.toInvoiceCount > 0) {
     items.push(
       <li key="invoice">

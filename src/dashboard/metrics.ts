@@ -50,6 +50,8 @@ export type DashboardInput = {
   slots: SlotRow[]
   submissionsToCorrect: SubmissionRow[]
   newTrialRequests: TrialRow[]
+  /** Réponses orales aux exercices des vidéos, pas encore écoutées. */
+  oralToReview: number
   /** Pourcentage saisi par Catherine ; `null` = pas de réserve affichée. */
   taxReservePercent: number | null
   directBilling: boolean
@@ -194,6 +196,7 @@ export function computeDashboard(input: DashboardInput) {
         (a.submittedAt ?? '').localeCompare(b.submittedAt ?? ''),
       ),
       trialRequests: [...input.newTrialRequests].sort((a, b) => a.createdAt.localeCompare(b.createdAt)),
+      oralToReview: input.oralToReview,
     },
   }
 }

@@ -4,11 +4,12 @@ Site et outil de travail de Catherine, professeure indépendante en Belgique : h
 
 Le cahier des charges (doc partagé « Plateforme cours de langues — Cahier des charges ») décrit la cible, pas l'existant. Ne développer que le périmètre demandé.
 
-## Repères (vérifiés le 17/10/2026, tableau de bord compris)
+## Repères (vérifiés le 17/10/2026, vidéothèque comprise)
 
 - `src/collections/`, `src/globals/` : modèle de données et règles d'accès Payload. `src/access/` : fonctions d'accès communes.
 - `src/billing/` : facturation (seul endroit qui connaît Mollie ou Smart). `src/lib/dbLock.ts` : verrous Postgres.
 - `src/app/(frontend)/[locale]/` : site public et espace élève (`espace/`). `src/i18n/` : langues, sens d'écriture, textes de l'interface.
+- `src/exercises/` : exercices des vidéos. `core.ts` (pur) fabrique la version sans solution et corrige ; `service.ts` lit avec les droits de l'élève puis enregistre la réponse. Pages élève dans `espace/videos/`, composants dans `src/components/student/exercises/`.
 - `src/dashboard/` : calculs (fonctions pures, à l'heure de Bruxelles) et chargement du tableau de bord ; affichage dans `src/components/admin/TeacherDashboard.tsx`, styles dans `src/app/(payload)/custom.scss`.
 - `src/seed/` : contenu de départ et élève de démonstration (avec un historique fictif marqué « Démo »). `tests/unit`, `tests/int` (Postgres), `tests/e2e` (Playwright).
 
@@ -53,6 +54,10 @@ Une décision qui change passe par Didier : mettre ce fichier à jour au lieu d'
 - En développement, Payload aligne le schéma automatiquement et **attend une confirmation interactive** si un changement peut perdre des données : un script qui semble bloqué au démarrage attend cela. Vider la base de dev ou répondre. La production devra utiliser des migrations (`pnpm payload migrate:create`), pas encore en place.
 - Les numéros de facture sont partagés entre fichiers de tests : écrire les attentes relativement au compteur.
 - Payload renomme un fichier déjà existant (`copie-1.pdf`).
+- Payload reconnaît un enregistrement audio WebM du navigateur comme `video/webm` : il est accepté dans `submission-files` pour cette raison.
+- Exercices : toute donnée de solution (bonne réponse, texte à trous, paires, explication) a un droit de lecture réservé à l'équipe et ne sort que par `toPublicExercise`. Le test e2e vérifie la page complète envoyée à l'élève.
+- Renommer un champ en développement déclenche la question interactive de Payload (renommé ou nouveau ?) : renommer la colonne en SQL dans la base de dev, ou vider la table.
+- L'administration affiche les lignes d'un tableau imbriqué au défilement : une capture prise trop tôt les montre vides.
 - Next.js 16 : consulter `node_modules/next/dist/docs/` avant d'utiliser une API.
 
 ## Manière de travailler
