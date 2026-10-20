@@ -3,6 +3,7 @@ import type { CollectionConfig, FieldAccess } from 'payload'
 import { isStaffUser, isTeacher, selfOrStaff, teacherOnly } from '@/access'
 import { cefrLevelField } from '@/fields'
 import { isValidTimeZone } from '@/lib/time'
+import { privacyEraseEndpoint, privacyExportEndpoint } from '@/privacy/endpoints'
 
 const staffField: { read: FieldAccess; update: FieldAccess } = {
   read: ({ req }) => isStaffUser(req),
@@ -18,6 +19,7 @@ export const Students: CollectionConfig = {
     group: 'Élèves',
   },
   auth: true,
+  endpoints: [privacyExportEndpoint, privacyEraseEndpoint],
   access: {
     read: selfOrStaff,
     create: teacherOnly,
@@ -168,6 +170,21 @@ export const Students: CollectionConfig = {
       label: 'Notes privées de la professeure',
       type: 'textarea',
       access: staffField,
+    },
+    {
+      name: 'erasedAt',
+      label: 'Données effacées le',
+      type: 'date',
+      access: { read: ({ req }) => isStaffUser(req), update: () => false, create: () => false },
+      admin: { readOnly: true, position: 'sidebar', condition: (data) => Boolean(data?.erasedAt) },
+    },
+    {
+      name: 'privacyActions',
+      type: 'ui',
+      admin: {
+        position: 'sidebar',
+        components: { Field: '/components/admin/StudentPrivacy#StudentPrivacy' },
+      },
     },
   ],
 }

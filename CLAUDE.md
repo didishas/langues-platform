@@ -11,6 +11,7 @@ Le cahier des charges (doc partagé « Plateforme cours de langues — Cahier de
 - `src/app/(frontend)/[locale]/` : site public et espace élève (`espace/`). `src/i18n/` : langues, sens d'écriture, textes de l'interface.
 - `src/exercises/` : exercices des vidéos. `core.ts` (pur) fabrique la version sans solution et corrige ; `service.ts` lit avec les droits de l'élève puis enregistre la réponse. Pages élève dans `espace/videos/`, composants dans `src/components/student/exercises/`.
 - `src/lib/time.ts` : heures des séances à l'heure de l'élève puis de Bruxelles (champ `timeZone` de l'élève, retenu à la première connexion).
+- `src/privacy/` : RGPD, export ZIP et effacement d'un élève (anonymisation de la fiche, factures conservées), points d'entrée `/api/students/:id/privacy-export` et `privacy-erase`, boutons dans `src/components/admin/StudentPrivacy.tsx`.
 - `src/dashboard/` : calculs (fonctions pures, à l'heure de Bruxelles) et chargement du tableau de bord ; affichage dans `src/components/admin/TeacherDashboard.tsx`, styles dans `src/app/(payload)/custom.scss`.
 - `src/seed/` : contenu de départ et élève de démonstration (avec un historique fictif marqué « Démo »). `tests/unit`, `tests/int` (Postgres), `tests/e2e` (Playwright).
 
@@ -59,6 +60,7 @@ Une décision qui change passe par Didier : mettre ce fichier à jour au lieu d'
 - Payload reconnaît un enregistrement audio WebM du navigateur comme `video/webm` : il est accepté dans `submission-files` pour cette raison.
 - Exercices : toute donnée de solution (bonne réponse, texte à trous, paires, explication) a un droit de lecture réservé à l'équipe et ne sort que par `toPublicExercise`. Le test e2e vérifie la page complète envoyée à l'élève.
 - Renommer un champ en développement déclenche la question interactive de Payload (renommé ou nouveau ?) : renommer la colonne en SQL dans la base de dev, ou vider la table.
+- Effacement RGPD : toute nouvelle collection qui contient des données d'élève doit être ajoutée à `collect()` dans `src/privacy/service.ts` et au test `tests/int/privacy.int.spec.ts`.
 - L'administration affiche les lignes d'un tableau imbriqué au défilement : une capture prise trop tôt les montre vides.
 - Next.js 16 : consulter `node_modules/next/dist/docs/` avant d'utiliser une API.
 

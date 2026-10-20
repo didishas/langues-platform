@@ -324,6 +324,7 @@ export interface Student {
   vatNumber?: string | null;
   billingAddress?: string | null;
   notes?: string | null;
+  erasedAt?: string | null;
   updatedAt: string;
   createdAt: string;
   email: string;
@@ -1017,6 +1018,7 @@ export interface StudentsSelect<T extends boolean = true> {
   vatNumber?: T;
   billingAddress?: T;
   notes?: T;
+  erasedAt?: T;
   updatedAt?: T;
   createdAt?: T;
   email?: T;

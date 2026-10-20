@@ -64,6 +64,13 @@ Catherine donne cours à l'heure de Bruxelles. Un élève qui vit ailleurs voit 
 de Bruxelles (« jeudi 22 octobre 2026 à 19:00 (heure d'Israël) · Bruxelles : 18:00 »). Son fuseau est retenu à sa première connexion ;
 ensuite seule Catherine le change, dans la fiche de l'élève. Factures et documents restent datés à l'heure de Bruxelles.
 
+## Données personnelles (RGPD)
+
+Dans la fiche d'un élève, Catherine seule voit deux boutons :
+
+- **Exporter ses données** : un ZIP avec `donnees.json` (fiche, séances, devoirs rendus, réponses aux exercices, prestations, factures, demandes d'essai) et les fichiers envoyés par l'élève. Jamais de mot de passe ni de session.
+- **Effacer ses données** : après avoir retapé l'e-mail de l'élève (vérifié par le serveur). Refusé tant qu'il reste une prestation non facturée ou une facture non payée. Efface devoirs rendus, réponses aux exercices et leurs fichiers, réservations à venir, demandes d'essai, devoirs et documents destinés à lui seul ; la fiche devient « Ancien élève n°X » sans donnée personnelle ni connexion possible. Gardés : factures (avec le client imprimé dessus) et séances passées, sans nom.
+
 ## Comptes de l'équipe
 
 - **Professeure** (Catherine) : tous les droits.
@@ -103,7 +110,7 @@ Le contenu de départ reprend le pitch MotàMot. Ces éléments restent à valid
 
 ## À faire avant l'ouverture aux vrais élèves
 
-- RGPD : export et suppression des données d'un élève, durée de conservation, textes validés.
+- RGPD : durées de conservation (factures, devoirs, enregistrements de voix) et textes (politique de confidentialité, consentements) à valider ; aujourd'hui rien n'est effacé automatiquement.
 - Migrations de base de données pour la production (aujourd'hui, schéma aligné automatiquement en développement).
 - Stockage des fichiers hors du serveur (stockage objet) et envoi d'e-mails. Indispensable pour les vidéos : sur le serveur du site, chaque vidéo passe par la mémoire du serveur à l'envoi et occupe son disque.
 - Consentement des élèves à l'enregistrement de leur voix (réponses orales) et durée de conservation de ces enregistrements.
