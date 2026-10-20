@@ -1,6 +1,6 @@
 import type { CollectionConfig, Where } from 'payload'
 
-import { isStaffUser, staffOnly } from '@/access'
+import { isStaffUser, teacherOnly } from '@/access'
 
 /** Devoirs et TP donnés par Catherine à un ou plusieurs élèves. */
 export const Assignments: CollectionConfig = {
@@ -20,9 +20,9 @@ export const Assignments: CollectionConfig = {
       }
       return false
     },
-    create: staffOnly,
-    update: staffOnly,
-    delete: staffOnly,
+    create: teacherOnly,
+    update: teacherOnly,
+    delete: teacherOnly,
   },
   fields: [
     { name: 'title', label: 'Titre', type: 'text', required: true },

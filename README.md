@@ -58,6 +58,11 @@ encaissé ce mois-ci et par mois, à encaisser, factures en retard, réserve imp
 est saisi dans les réglages de facturation, à fixer avec le comptable), montant par langue, heures données et remplissage,
 élèves actifs, nouveaux et à relancer, devoirs à corriger, réponses orales à écouter et demandes de cours d'essai. Chaque chiffre affiche sa définition.
 
+## Comptes de l'équipe
+
+- **Professeure** (Catherine) : tous les droits.
+- **Technique** (Didier, Siméon) : lit tout pour dépanner, mais ne valide, n'envoie, ne modifie ni ne supprime rien qui touche aux élèves ou à l'argent. Il peut corriger le contenu du site (langues, formules, réductions, images) et les réglages du site et des cours. Seule Catherine crée les comptes et choisit les rôles.
+
 ## Tests
 
 ```bash
@@ -93,7 +98,6 @@ Le contenu de départ reprend le pitch MotàMot. Ces éléments restent à valid
 ## À faire avant l'ouverture aux vrais élèves
 
 - Fuseaux horaires : afficher l'heure de Bruxelles explicitement, ou l'heure locale de l'élève (élèves en Israël, en Roumanie…).
-- Droits du compte technique : le distinguer des droits de Catherine (aujourd'hui identiques).
 - RGPD : export et suppression des données d'un élève, durée de conservation, textes validés.
 - Migrations de base de données pour la production (aujourd'hui, schéma aligné automatiquement en développement).
 - Stockage des fichiers hors du serveur (stockage objet) et envoi d'e-mails. Indispensable pour les vidéos : sur le serveur du site, chaque vidéo passe par la mémoire du serveur à l'envoi et occupe son disque.

@@ -755,7 +755,10 @@ export interface InvoiceCounter {
 export interface User {
   id: number;
   name?: string | null;
-  role?: ('teacher' | 'tech') | null;
+  /**
+   * Le compte technique lit tout mais ne valide, n’envoie ni ne supprime rien.
+   */
+  role: 'teacher' | 'tech';
   updatedAt: string;
   createdAt: string;
   email: string;

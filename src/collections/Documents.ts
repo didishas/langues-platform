@@ -1,7 +1,7 @@
 import path from 'path'
 import type { CollectionConfig } from 'payload'
 
-import { isStaffUser, staffOnly } from '@/access'
+import { isStaffUser, teacherOnly } from '@/access'
 
 /** Documents que Catherine partage avec un ou plusieurs élèves. Jamais publics. */
 export const Documents: CollectionConfig = {
@@ -18,9 +18,9 @@ export const Documents: CollectionConfig = {
       if (req.user?.collection === 'students') return { sharedWith: { equals: req.user.id } }
       return false
     },
-    create: staffOnly,
-    update: staffOnly,
-    delete: staffOnly,
+    create: teacherOnly,
+    update: teacherOnly,
+    delete: teacherOnly,
   },
   upload: {
     // Fichiers privés : servis uniquement via l'API, qui applique les règles d'accès.

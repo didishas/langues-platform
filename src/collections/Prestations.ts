@@ -1,6 +1,6 @@
 import type { CollectionConfig } from 'payload'
 
-import { ownStudentDocsOrStaff, staffOnly } from '@/access'
+import { ownStudentDocsOrStaff, teacherOnly } from '@/access'
 import { euroAmountFields } from '@/fields'
 
 /**
@@ -19,9 +19,9 @@ export const Prestations: CollectionConfig = {
   defaultSort: '-date',
   access: {
     read: ownStudentDocsOrStaff,
-    create: staffOnly,
-    update: staffOnly,
-    delete: staffOnly,
+    create: teacherOnly,
+    update: teacherOnly,
+    delete: teacherOnly,
   },
   hooks: {
     beforeChange: [

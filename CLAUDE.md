@@ -31,6 +31,7 @@ Variables : voir `.env.example`. Aucune valeur réelle dans le dépôt.
 
 - Stack adoptée : Next.js 16 (App Router), Payload 3, PostgreSQL. **Pas de Supabase** : Payload possède comptes, droits et schéma.
 - Deux types de comptes Payload : `users` (équipe) et `students` (élèves, sans accès à l'administration).
+- Équipe : rôle « professeure » (Catherine) ou « technique ». Le compte technique lit tout mais ne fait rien partir (décision de Didier, 20/10/2026) : il n'écrit que dans langues, formules, réductions, images, réglages du site et des cours, et dans son propre compte (pas son rôle). Écritures ailleurs : `teacherOnly` / `isTeacher` (`src/access/`).
 - Visio : Zoom ou Google Meet au choix par créneau, liens habituels dans « Réglages des cours ». Lien visible seulement pour une réservation confirmée. Salle intégrée (LiveKit) reportée, décision de Didier.
 - Facturation : les prestations sont la source de vérité. Fournisseur `direct` (phase 1) ou `smart` (phase 2) par réglage et date de bascule. Une facture naît « à valider » et reçoit numéro et communication structurée à la validation.
 - Identité : nom MotàMot, police Rubik, palette `#23225c` (encre), `#4a47c9` (indigo), `#f6c7ba` / `#fce6df` (pêche), `#a8492f` (texte corail), `#fff8f5` (fond).

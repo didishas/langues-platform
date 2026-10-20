@@ -1,6 +1,6 @@
 import { APIError, type CollectionConfig } from 'payload'
 
-import { ownStudentDocsOrStaff, staffOnly } from '@/access'
+import { ownStudentDocsOrStaff, teacherOnly } from '@/access'
 import { LOCK, lockInTransaction } from '@/lib/dbLock'
 
 export const Bookings: CollectionConfig = {
@@ -12,9 +12,9 @@ export const Bookings: CollectionConfig = {
   },
   access: {
     read: ownStudentDocsOrStaff,
-    create: staffOnly,
-    update: staffOnly,
-    delete: staffOnly,
+    create: teacherOnly,
+    update: teacherOnly,
+    delete: teacherOnly,
   },
   hooks: {
     beforeChange: [

@@ -1,6 +1,6 @@
 import type { CollectionConfig, Where } from 'payload'
 
-import { isStaffUser, staffOnly } from '@/access'
+import { isStaffUser, teacherOnly } from '@/access'
 import { paymentWebhookEndpoint, prepareEndpoint, smartExportEndpoint } from '@/billing/endpoints'
 import { createPaymentLink, finalizeOnValidation } from '@/billing/service'
 import { euroAmountFields } from '@/fields'
@@ -53,9 +53,9 @@ export const Invoices: CollectionConfig = {
       }
       return false
     },
-    create: staffOnly,
-    update: staffOnly,
-    delete: staffOnly,
+    create: teacherOnly,
+    update: teacherOnly,
+    delete: teacherOnly,
   },
   hooks: {
     beforeChange: [

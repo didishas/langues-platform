@@ -1,7 +1,7 @@
 import path from 'path'
 import { APIError, type Block, type CollectionConfig, type FieldAccess, type Where } from 'payload'
 
-import { isStaffUser, staffOnly } from '@/access'
+import { isStaffUser, teacherOnly } from '@/access'
 import { parseGapText } from '@/exercises/core'
 import { cefrLevelField } from '@/fields'
 
@@ -148,9 +148,9 @@ export const Videos: CollectionConfig = {
       }
       return { and: [{ published: { equals: true } }, { or: audience }] } as Where
     },
-    create: staffOnly,
-    update: staffOnly,
-    delete: staffOnly,
+    create: teacherOnly,
+    update: teacherOnly,
+    delete: teacherOnly,
   },
   hooks: {
     beforeValidate: [

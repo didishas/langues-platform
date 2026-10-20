@@ -1,6 +1,6 @@
 import type { CollectionConfig } from 'payload'
 
-import { staffOnly } from '@/access'
+import { teacherOnly } from '@/access'
 
 /** Créneaux que Catherine ouvre à la réservation. */
 export const Slots: CollectionConfig = {
@@ -15,9 +15,9 @@ export const Slots: CollectionConfig = {
   access: {
     // Les créneaux ouverts sont visibles publiquement pour la réservation.
     read: ({ req }) => (req.user?.collection === 'users' ? true : { status: { equals: 'open' } }),
-    create: staffOnly,
-    update: staffOnly,
-    delete: staffOnly,
+    create: teacherOnly,
+    update: teacherOnly,
+    delete: teacherOnly,
   },
   hooks: {
     beforeValidate: [

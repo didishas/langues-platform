@@ -1,7 +1,7 @@
 import path from 'path'
 import type { CollectionConfig } from 'payload'
 
-import { isStaffUser } from '@/access'
+import { isStaffUser, isTeacher, teacherOnly } from '@/access'
 
 /** Fichiers rendus par les élèves avec leurs devoirs. Visibles par l'élève qui les a envoyés et par l'équipe. */
 export const SubmissionFiles: CollectionConfig = {
@@ -14,9 +14,9 @@ export const SubmissionFiles: CollectionConfig = {
       if (req.user?.collection === 'students') return { owner: { equals: req.user.id } }
       return false
     },
-    create: ({ req }) => isStaffUser(req) || req.user?.collection === 'students',
+    create: ({ req }) => isTeacher(req) || req.user?.collection === 'students',
     update: () => false,
-    delete: ({ req }) => isStaffUser(req),
+    delete: teacherOnly,
   },
   hooks: {
     beforeChange: [

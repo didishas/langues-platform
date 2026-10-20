@@ -5,6 +5,16 @@ export const isStaffUser = (req: PayloadRequest): boolean => req.user?.collectio
 
 export const staffOnly: Access = ({ req }) => isStaffUser(req)
 
+/**
+ * Catherine (rôle « professeure »). Le compte technique lit tout mais ne fait rien partir :
+ * il n'écrit que dans le contenu du site et les réglages sans argent (langues, formules, réductions,
+ * images, réglages du site et des cours). Décision de Didier du 20/10/2026.
+ */
+export const isTeacher = (req: PayloadRequest): boolean =>
+  req.user?.collection === 'users' && (req.user as { role?: string | null }).role === 'teacher'
+
+export const teacherOnly: Access = ({ req }) => isTeacher(req)
+
 export const publicRead: Access = () => true
 
 /** Contenu publié lisible par tous, brouillons et contenus masqués réservés à l'équipe. */

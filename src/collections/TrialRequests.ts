@@ -1,6 +1,6 @@
 import type { CollectionConfig } from 'payload'
 
-import { staffOnly } from '@/access'
+import { staffOnly, teacherOnly } from '@/access'
 
 /** Demandes de cours d'essai envoyées depuis le site public. */
 export const TrialRequests: CollectionConfig = {
@@ -15,9 +15,9 @@ export const TrialRequests: CollectionConfig = {
   access: {
     read: staffOnly,
     // La création publique passe uniquement par l'action serveur du formulaire.
-    create: staffOnly,
-    update: staffOnly,
-    delete: staffOnly,
+    create: teacherOnly,
+    update: teacherOnly,
+    delete: teacherOnly,
   },
   fields: [
     { name: 'name', label: 'Nom', type: 'text', required: true },

@@ -1,8 +1,8 @@
 import type { CollectionConfig, FieldAccess } from 'payload'
 
-import { isStaffUser, ownStudentDocsOrStaff, staffOnly } from '@/access'
+import { isTeacher, ownStudentDocsOrStaff, teacherOnly } from '@/access'
 
-const staffField: { update: FieldAccess } = { update: ({ req }) => isStaffUser(req) }
+const staffField: { update: FieldAccess } = { update: ({ req }) => isTeacher(req) }
 
 /**
  * Réponses des élèves aux exercices des vidéos.
@@ -21,14 +21,14 @@ export const ExerciseAttempts: CollectionConfig = {
   defaultSort: '-createdAt',
   access: {
     read: ownStudentDocsOrStaff,
-    create: staffOnly,
-    update: staffOnly,
-    delete: staffOnly,
+    create: teacherOnly,
+    update: teacherOnly,
+    delete: teacherOnly,
   },
   hooks: {
     beforeChange: [
       ({ data, originalDoc, req }) => {
-        if (isStaffUser(req) && data.status === 'reviewed' && originalDoc?.status !== 'reviewed') {
+        if (isTeacher(req) && data.status === 'reviewed' && originalDoc?.status !== 'reviewed') {
           data.reviewedAt = new Date().toISOString()
         }
         return data

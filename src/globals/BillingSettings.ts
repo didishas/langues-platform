@@ -1,6 +1,6 @@
 import type { GlobalConfig } from 'payload'
 
-import { staffOnly } from '@/access'
+import { staffOnly, teacherOnly } from '@/access'
 
 export const BillingSettings: GlobalConfig = {
   slug: 'billing-settings',
@@ -10,7 +10,7 @@ export const BillingSettings: GlobalConfig = {
     description:
       'Statut de facturation et mentions légales. Le passage à Smart se fait ici, avec une date de bascule.',
   },
-  access: { read: staffOnly, update: staffOnly },
+  access: { read: staffOnly, update: teacherOnly },
   fields: [
     {
       type: 'row',

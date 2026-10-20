@@ -1,9 +1,12 @@
-import type { CollectionConfig } from 'payload'
+import type { CollectionConfig, FieldAccess } from 'payload'
 
-import { isStaffUser, selfOrStaff, staffOnly } from '@/access'
+import { isStaffUser, isTeacher, selfOrStaff, teacherOnly } from '@/access'
 import { cefrLevelField } from '@/fields'
 
-const staffField = { read: ({ req }: any) => isStaffUser(req), update: ({ req }: any) => isStaffUser(req) }
+const staffField: { read: FieldAccess; update: FieldAccess } = {
+  read: ({ req }) => isStaffUser(req),
+  update: ({ req }) => isTeacher(req),
+}
 
 export const Students: CollectionConfig = {
   slug: 'students',
@@ -16,9 +19,14 @@ export const Students: CollectionConfig = {
   auth: true,
   access: {
     read: selfOrStaff,
-    create: staffOnly,
-    update: selfOrStaff,
-    delete: staffOnly,
+    create: teacherOnly,
+    // Le compte technique lit les fiches mais ne les modifie pas.
+    update: ({ req }) => {
+      if (isTeacher(req)) return true
+      if (req.user?.collection === 'students') return { id: { equals: req.user.id } }
+      return false
+    },
+    delete: teacherOnly,
     admin: () => false,
   },
   hooks: {
@@ -85,7 +93,7 @@ export const Students: CollectionConfig = {
           label: 'Responsable légal',
           type: 'group',
           // L'accord parental est enregistré par Catherine, jamais par l'élève lui-même.
-          access: { update: ({ req }) => isStaffUser(req) },
+          access: { update: ({ req }) => isTeacher(req) },
           admin: { condition: (data) => Boolean(data?.isMinor) },
           fields: [
             { name: 'name', label: 'Nom', type: 'text' },

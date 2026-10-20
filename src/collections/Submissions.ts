@@ -1,12 +1,12 @@
-import type { CollectionConfig, Where } from 'payload'
+import type { CollectionConfig, FieldAccess, Where } from 'payload'
 
-import { isStaffUser, staffOnly } from '@/access'
+import { isStaffUser, isTeacher, teacherOnly } from '@/access'
 
 const idOf = (v: unknown) => (v && typeof v === 'object' ? (v as { id: number }).id : (v as number | undefined))
 
-const staffField = {
-  create: ({ req }: any) => isStaffUser(req),
-  update: ({ req }: any) => isStaffUser(req),
+const staffField: { create: FieldAccess; update: FieldAccess } = {
+  create: ({ req }) => isTeacher(req),
+  update: ({ req }) => isTeacher(req),
 }
 
 /**
@@ -29,15 +29,15 @@ export const Submissions: CollectionConfig = {
       if (req.user?.collection === 'students') return { student: { equals: req.user.id } }
       return false
     },
-    create: ({ req }) => isStaffUser(req) || req.user?.collection === 'students',
+    create: ({ req }) => isTeacher(req) || req.user?.collection === 'students',
     update: ({ req }) => {
-      if (isStaffUser(req)) return true
+      if (isTeacher(req)) return true
       if (req.user?.collection === 'students') {
         return { and: [{ student: { equals: req.user.id } }, { status: { equals: 'returned' } }] } as Where
       }
       return false
     },
-    delete: staffOnly,
+    delete: teacherOnly,
   },
   hooks: {
     beforeChange: [
@@ -86,7 +86,7 @@ export const Submissions: CollectionConfig = {
             throw new Error('Fichier joint invalide.')
           }
         }
-        if (isStaffUser(req) && data.status === 'corrected' && originalDoc?.status !== 'corrected') {
+        if (isTeacher(req) && data.status === 'corrected' && originalDoc?.status !== 'corrected') {
           data.correctedAt = new Date().toISOString()
         }
         const student = await req.payload.findByID({

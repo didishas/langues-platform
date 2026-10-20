@@ -1,6 +1,6 @@
 import type { Endpoint } from 'payload'
 
-import { isStaffUser } from '@/access'
+import { isStaffUser, isTeacher } from '@/access'
 
 import { toSmartCsv } from './providers/smart'
 import { handlePaymentNotification, prepareDraftInvoice } from './service'
@@ -13,7 +13,7 @@ export const prepareEndpoint: Endpoint = {
   path: '/prepare',
   method: 'post',
   handler: async (req) => {
-    if (!isStaffUser(req)) return json({ error: 'Accès refusé' }, 403)
+    if (!isTeacher(req)) return json({ error: 'Accès refusé' }, 403)
     const body = (await req.json?.()) as { studentId?: string | number; prestationIds?: (string | number)[] }
     if (!body?.studentId || !Array.isArray(body.prestationIds)) {
       return json({ error: 'studentId et prestationIds sont requis' }, 400)
