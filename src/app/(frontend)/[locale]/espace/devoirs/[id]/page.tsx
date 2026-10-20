@@ -6,7 +6,8 @@ import { StudentNav } from '@/components/student/StudentNav'
 import { SubmitForm } from '@/components/student/SubmitForm'
 import { contentDir, isLocale } from '@/i18n/config'
 import { getStudentDictionary } from '@/i18n/studentDictionaries'
-import { formatDate, requireStudent } from '@/lib/student'
+import { requireStudent } from '@/lib/student'
+import { formatSessionTime } from '@/lib/time'
 import { getAssignment } from '@/lib/studentData'
 import type { Document, Language, SubmissionFile } from '@/payload-types'
 
@@ -26,6 +27,8 @@ export default async function AssignmentPage({ params }: { params: Promise<{ loc
   const attachments = (assignment.attachments ?? []).filter((d): d is Document => typeof d === 'object')
   const status = submission?.status ?? 'todo'
   const canSubmit = !submission || submission.status === 'returned'
+  // Échéance à l'heure de l'élève, puis à celle de Bruxelles si elle diffère.
+  const due = assignment.dueDate ? formatSessionTime(assignment.dueDate, locale, student.timeZone, t.home.brussels) : null
   const files = (submission?.files ?? []).filter((f): f is SubmissionFile => typeof f === 'object')
 
   return (
@@ -40,7 +43,7 @@ export default async function AssignmentPage({ params }: { params: Promise<{ loc
           <span>{t.assignments.kind[assignment.kind]}</span>
           {language ? <span>{language.name}</span> : null}
           <span>
-            {assignment.dueDate ? `${t.assignments.due} ${formatDate(assignment.dueDate, locale, true)}` : t.assignments.noDue}
+            {due ? `${t.assignments.due} ${due.local}${due.brussels ? ` · ${due.brussels}` : ''}` : t.assignments.noDue}
           </span>
           <span className={`tag tag--${status}`}>{t.assignments.status[status]}</span>
         </p>

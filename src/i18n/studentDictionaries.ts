@@ -17,6 +17,7 @@ const fr = {
   nav: { home: 'Accueil', assignments: 'Devoirs', videos: 'Vidéos', documents: 'Documents', invoices: 'Factures' },
   home: {
     hello: 'Bonjour',
+    brussels: 'Bruxelles : {time}',
     nextSessions: 'Prochaines séances',
     noSessions: 'Aucune séance prévue pour le moment.',
     join: 'Rejoindre la visio',
@@ -136,6 +137,7 @@ const en: StudentDictionary = {
   nav: { home: 'Home', assignments: 'Homework', videos: 'Videos', documents: 'Documents', invoices: 'Invoices' },
   home: {
     hello: 'Hello',
+    brussels: 'Brussels: {time}',
     nextSessions: 'Upcoming lessons',
     noSessions: 'No lessons scheduled yet.',
     join: 'Join the video call',
@@ -253,6 +255,7 @@ const he: StudentDictionary = {
   nav: { home: 'ראשי', assignments: 'שיעורי בית', videos: 'סרטונים', documents: 'מסמכים', invoices: 'חשבוניות' },
   home: {
     hello: 'שלום',
+    brussels: 'בריסל: {time}',
     nextSessions: 'השיעורים הבאים',
     noSessions: 'אין שיעורים מתוכננים כרגע.',
     join: 'הצטרפות לשיחת הווידאו',

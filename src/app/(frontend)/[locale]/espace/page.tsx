@@ -2,9 +2,10 @@ import Link from 'next/link'
 import { notFound } from 'next/navigation'
 
 import { StudentNav } from '@/components/student/StudentNav'
-import { isLocale } from '@/i18n/config'
+import { isLocale, type Locale } from '@/i18n/config'
 import { getStudentDictionary } from '@/i18n/studentDictionaries'
 import { formatDate, requireStudent } from '@/lib/student'
+import { formatSessionTime, studentTimeZone } from '@/lib/time'
 import { getAssignmentRows, getUpcomingSessions } from '@/lib/studentData'
 
 export const metadata = { robots: { index: false } }
@@ -14,6 +15,7 @@ export default async function StudentHomePage({ params }: { params: Promise<{ lo
   if (!isLocale(locale)) notFound()
   const student = await requireStudent(locale)
   const t = getStudentDictionary(locale)
+  const tz = studentTimeZone(student.timeZone)
   const [sessions, rows] = await Promise.all([getUpcomingSessions(student), getAssignmentRows(student)])
 
   const todo = rows.filter((r) => r.status === 'todo' || r.status === 'returned')
@@ -35,7 +37,7 @@ export default async function StudentHomePage({ params }: { params: Promise<{ lo
               {sessions.map((s) => (
                 <li key={s.bookingId} className="row">
                   <div>
-                    <p className="row__title">{formatDate(s.slot.start, locale, true)}</p>
+                    <SessionTime iso={s.slot.start} locale={locale} tz={tz} template={t.home.brussels} />
                     {!s.confirmed ? <p className="row__meta">{t.home.pending}</p> : null}
                   </div>
                   {s.meetingUrl ? (
@@ -63,7 +65,7 @@ export default async function StudentHomePage({ params }: { params: Promise<{ lo
                     </p>
                     <p className="row__meta">
                       {r.assignment.dueDate
-                        ? `${t.assignments.due} ${formatDate(r.assignment.dueDate, locale)}`
+                        ? `${t.assignments.due} ${formatDate(r.assignment.dueDate, locale, false, tz)}`
                         : t.assignments.noDue}
                     </p>
                   </div>
@@ -90,6 +92,17 @@ export default async function StudentHomePage({ params }: { params: Promise<{ lo
           </section>
         ) : null}
       </div>
+    </>
+  )
+}
+
+/** Heure de la séance chez l'élève, puis à Bruxelles si elle diffère. */
+function SessionTime({ iso, locale, tz, template }: { iso: string; locale: Locale; tz: string; template: string }) {
+  const { local, brussels } = formatSessionTime(iso, locale, tz, template)
+  return (
+    <>
+      <p className="row__title">{local}</p>
+      {brussels ? <p className="row__meta session-brussels">{brussels}</p> : null}
     </>
   )
 }

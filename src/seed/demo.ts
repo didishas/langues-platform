@@ -69,6 +69,8 @@ async function demo() {
       password: PASSWORD,
       languages: hebrew ? [hebrew.id] : [],
       level: 'A1',
+      // Élève fictive qui vit en Israël : ses séances s'affichent à son heure, puis à celle de Bruxelles.
+      timeZone: 'Asia/Jerusalem',
     } as any,
   })
 

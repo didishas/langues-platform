@@ -5,6 +5,7 @@ import { StudentNav } from '@/components/student/StudentNav'
 import { isLocale } from '@/i18n/config'
 import { getStudentDictionary } from '@/i18n/studentDictionaries'
 import { formatDate, requireStudent } from '@/lib/student'
+import { studentTimeZone } from '@/lib/time'
 import { getAssignmentRows } from '@/lib/studentData'
 
 export const metadata = { robots: { index: false } }
@@ -36,7 +37,7 @@ export default async function AssignmentsPage({ params }: { params: Promise<{ lo
                     {r.language ? <span>{r.language.name}</span> : null}
                     <span>
                       {r.assignment.dueDate
-                        ? `${t.assignments.due} ${formatDate(r.assignment.dueDate, locale)}`
+                        ? `${t.assignments.due} ${formatDate(r.assignment.dueDate, locale, false, studentTimeZone(student.timeZone))}`
                         : t.assignments.noDue}
                     </span>
                   </p>

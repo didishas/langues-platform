@@ -26,12 +26,13 @@ export async function requireStudent(locale: Locale): Promise<StudentUser> {
 /** Options de l'API locale pour lire « en tant que » l'élève : ses règles d'accès s'appliquent. */
 export const asStudent = (student: StudentUser) => ({ user: student, overrideAccess: false as const })
 
-export function formatDate(iso: string | null | undefined, locale: Locale, withTime = false): string {
+/** Date seule, dans le fuseau donné (Bruxelles par défaut : factures, documents). */
+export function formatDate(iso: string | null | undefined, locale: Locale, withTime = false, timeZone = 'Europe/Brussels'): string {
   if (!iso) return ''
   const tag = locale === 'he' ? 'he-IL' : locale === 'en' ? 'en-GB' : 'fr-BE'
   return new Intl.DateTimeFormat(tag, {
     dateStyle: 'full',
     ...(withTime ? { timeStyle: 'short' } : {}),
-    timeZone: 'Europe/Brussels',
+    timeZone,
   }).format(new Date(iso))
 }

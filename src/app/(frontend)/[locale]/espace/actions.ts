@@ -7,6 +7,7 @@ import { isLocale } from '@/i18n/config'
 import { getStudentDictionary } from '@/i18n/studentDictionaries'
 import { payloadClient } from '@/lib/content'
 import { asStudent, getCurrentStudent } from '@/lib/student'
+import { isValidTimeZone } from '@/lib/time'
 
 const COOKIE = 'payload-token'
 const MAX_FILE_BYTES = 10 * 1024 * 1024
@@ -27,6 +28,12 @@ export async function loginStudent(_prev: LoginState, form: FormData): Promise<L
     const payload = await payloadClient()
     const result = await payload.login({ collection: 'students', data: { email, password } })
     if (!result.token) return { error: t.error, email }
+    // Première connexion : on retient le fuseau de l'appareil. Ensuite, seule Catherine le change.
+    // Droits contournés pour ce seul champ de la fiche de l'élève qui vient de se connecter.
+    const tz = String(form.get('tz') ?? '')
+    if (result.user && !result.user.timeZone && isValidTimeZone(tz)) {
+      await payload.update({ collection: 'students', id: result.user.id, data: { timeZone: tz }, overrideAccess: true })
+    }
     const store = await cookies()
     store.set(COOKIE, result.token, {
       httpOnly: true,

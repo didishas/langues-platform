@@ -58,6 +58,12 @@ encaissé ce mois-ci et par mois, à encaisser, factures en retard, réserve imp
 est saisi dans les réglages de facturation, à fixer avec le comptable), montant par langue, heures données et remplissage,
 élèves actifs, nouveaux et à relancer, devoirs à corriger, réponses orales à écouter et demandes de cours d'essai. Chaque chiffre affiche sa définition.
 
+## Fuseaux horaires
+
+Catherine donne cours à l'heure de Bruxelles. Un élève qui vit ailleurs voit ses séances et ses échéances à son heure, puis à celle
+de Bruxelles (« jeudi 22 octobre 2026 à 19:00 (heure d'Israël) · Bruxelles : 18:00 »). Son fuseau est retenu à sa première connexion ;
+ensuite seule Catherine le change, dans la fiche de l'élève. Factures et documents restent datés à l'heure de Bruxelles.
+
 ## Comptes de l'équipe
 
 - **Professeure** (Catherine) : tous les droits.
@@ -97,7 +103,6 @@ Le contenu de départ reprend le pitch MotàMot. Ces éléments restent à valid
 
 ## À faire avant l'ouverture aux vrais élèves
 
-- Fuseaux horaires : afficher l'heure de Bruxelles explicitement, ou l'heure locale de l'élève (élèves en Israël, en Roumanie…).
 - RGPD : export et suppression des données d'un élève, durée de conservation, textes validés.
 - Migrations de base de données pour la production (aujourd'hui, schéma aligné automatiquement en développement).
 - Stockage des fichiers hors du serveur (stockage objet) et envoi d'e-mails. Indispensable pour les vidéos : sur le serveur du site, chaque vidéo passe par la mémoire du serveur à l'envoi et occupe son disque.

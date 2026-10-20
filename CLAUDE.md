@@ -10,6 +10,7 @@ Le cahier des charges (doc partagé « Plateforme cours de langues — Cahier de
 - `src/billing/` : facturation (seul endroit qui connaît Mollie ou Smart). `src/lib/dbLock.ts` : verrous Postgres.
 - `src/app/(frontend)/[locale]/` : site public et espace élève (`espace/`). `src/i18n/` : langues, sens d'écriture, textes de l'interface.
 - `src/exercises/` : exercices des vidéos. `core.ts` (pur) fabrique la version sans solution et corrige ; `service.ts` lit avec les droits de l'élève puis enregistre la réponse. Pages élève dans `espace/videos/`, composants dans `src/components/student/exercises/`.
+- `src/lib/time.ts` : heures des séances à l'heure de l'élève puis de Bruxelles (champ `timeZone` de l'élève, retenu à la première connexion).
 - `src/dashboard/` : calculs (fonctions pures, à l'heure de Bruxelles) et chargement du tableau de bord ; affichage dans `src/components/admin/TeacherDashboard.tsx`, styles dans `src/app/(payload)/custom.scss`.
 - `src/seed/` : contenu de départ et élève de démonstration (avec un historique fictif marqué « Démo »). `tests/unit`, `tests/int` (Postgres), `tests/e2e` (Playwright).
 
@@ -20,7 +21,7 @@ Commandes (pnpm, lockfile présent) :
 | `docker compose up -d` | fichier fourni, non exécuté ici (Postgres installé directement) |
 | `pnpm install`, `pnpm dev`, `pnpm seed`, `pnpm seed:demo` | OK |
 | `pnpm typecheck` | OK |
-| `pnpm lint` | OK, 0 erreur (avertissements `any` dans les tests) |
+| `pnpm lint` | OK, 0 erreur (avertissements `any` : tests et quelques fichiers de facturation et de seed) |
 | `pnpm test:int` | OK : unitaires + intégration sur `TEST_DATABASE_URL` (base `*_test`, vidée à chaque lancement) |
 | `pnpm test:e2e` | OK : serveur de dev + base de dev seedée ; navigateur via `pnpm exec playwright install chromium` ou `PLAYWRIGHT_CHROMIUM_EXECUTABLE` |
 | `pnpm build` | OK |

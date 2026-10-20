@@ -300,6 +300,10 @@ export interface Student {
   fullName?: string | null;
   phone?: string | null;
   preferredLocale?: ('fr' | 'en' | 'he') | null;
+  /**
+   * Rempli automatiquement à la première connexion de l’élève. Exemples : Europe/Brussels, Asia/Jerusalem, Europe/Bucharest. Vide = heure de Bruxelles.
+   */
+  timeZone?: string | null;
   languages?: (number | Language)[] | null;
   level?: ('A1' | 'A2' | 'B1' | 'B2' | 'C1' | 'C2') | null;
   /**
@@ -993,6 +997,7 @@ export interface StudentsSelect<T extends boolean = true> {
   fullName?: T;
   phone?: T;
   preferredLocale?: T;
+  timeZone?: T;
   languages?: T;
   level?: T;
   familyOf?: T;

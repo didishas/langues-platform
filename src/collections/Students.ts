@@ -2,6 +2,7 @@ import type { CollectionConfig, FieldAccess } from 'payload'
 
 import { isStaffUser, isTeacher, selfOrStaff, teacherOnly } from '@/access'
 import { cefrLevelField } from '@/fields'
+import { isValidTimeZone } from '@/lib/time'
 
 const staffField: { read: FieldAccess; update: FieldAccess } = {
   read: ({ req }) => isStaffUser(req),
@@ -65,6 +66,21 @@ export const Students: CollectionConfig = {
         { label: 'English', value: 'en' },
         { label: 'עברית', value: 'he' },
       ],
+    },
+    {
+      name: 'timeZone',
+      label: 'Fuseau horaire',
+      type: 'text',
+      access: { update: ({ req }) => isTeacher(req) },
+      admin: {
+        placeholder: 'Europe/Brussels',
+        description:
+          'Rempli automatiquement à la première connexion de l’élève. Exemples : Europe/Brussels, Asia/Jerusalem, Europe/Bucharest. Vide = heure de Bruxelles.',
+      },
+      validate: (value: unknown) =>
+        value === null || value === undefined || value === '' || isValidTimeZone(value)
+          ? true
+          : 'Fuseau inconnu. Exemple : Asia/Jerusalem.',
     },
     {
       name: 'languages',

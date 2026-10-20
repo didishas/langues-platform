@@ -1,6 +1,6 @@
 'use client'
 
-import { useActionState } from 'react'
+import { useActionState, useEffect, useRef } from 'react'
 
 import { loginStudent, type LoginState } from '@/app/(frontend)/[locale]/espace/actions'
 import type { Locale } from '@/i18n/config'
@@ -8,10 +8,16 @@ import type { StudentDictionary } from '@/i18n/studentDictionaries'
 
 export function LoginForm({ locale, t }: { locale: Locale; t: StudentDictionary['login'] }) {
   const [state, action, pending] = useActionState<LoginState, FormData>(loginStudent, {})
+  // Fuseau horaire de l'appareil, pour afficher les séances à l'heure de l'élève (rempli après le premier rendu).
+  const tz = useRef<HTMLInputElement>(null)
+  useEffect(() => {
+    if (tz.current) tz.current.value = Intl.DateTimeFormat().resolvedOptions().timeZone ?? ''
+  })
 
   return (
     <form action={action} className="trial-form login-form">
       <input type="hidden" name="locale" value={locale} />
+      <input type="hidden" name="tz" ref={tz} defaultValue="" />
       <div className="field">
         <label htmlFor="login-email">{t.email}</label>
         <input
