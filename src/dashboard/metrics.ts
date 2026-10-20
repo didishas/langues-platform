@@ -52,6 +52,8 @@ export type DashboardInput = {
   newTrialRequests: TrialRow[]
   /** Réponses orales aux exercices des vidéos, pas encore écoutées. */
   oralToReview: number
+  /** Messages préparés qui attendent la validation de Catherine (ou dont l'envoi a échoué). */
+  messagesToApprove: number
   /** Pourcentage saisi par Catherine ; `null` = pas de réserve affichée. */
   taxReservePercent: number | null
   directBilling: boolean
@@ -197,6 +199,7 @@ export function computeDashboard(input: DashboardInput) {
       ),
       trialRequests: [...input.newTrialRequests].sort((a, b) => a.createdAt.localeCompare(b.createdAt)),
       oralToReview: input.oralToReview,
+      messagesToApprove: input.messagesToApprove,
     },
   }
 }

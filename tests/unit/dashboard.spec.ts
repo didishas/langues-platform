@@ -21,6 +21,7 @@ const base = (over: Partial<DashboardInput> = {}): DashboardInput => ({
   submissionsToCorrect: [],
   newTrialRequests: [],
   oralToReview: 0,
+  messagesToApprove: 0,
   taxReservePercent: null,
   directBilling: true,
   ...over,

@@ -1,6 +1,7 @@
 import { APIError, type CollectionConfig } from 'payload'
 
 import { ownStudentDocsOrStaff, teacherOnly } from '@/access'
+import { prepareBookingEmail } from '@/mail/outbox'
 import { LOCK, lockInTransaction } from '@/lib/dbLock'
 
 export const Bookings: CollectionConfig = {
@@ -40,6 +41,15 @@ export const Bookings: CollectionConfig = {
           throw new APIError('Ce créneau est complet. Choisissez un autre créneau.', 409, null, true)
         }
         return data
+      },
+    ],
+    afterChange: [
+      async ({ doc, previousDoc, operation, req }) => {
+        // Séance confirmée : brouillon d'e-mail de confirmation, envoyé seulement après validation de Catherine.
+        if (doc.status === 'confirmed' && (operation === 'create' || previousDoc?.status !== 'confirmed')) {
+          await prepareBookingEmail(req.payload, doc, req)
+        }
+        return doc
       },
     ],
   },

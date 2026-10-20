@@ -34,3 +34,6 @@ media/
 # Résultats Playwright
 test-results/
 playwright-report/
+
+# E-mails écrits en local au lieu de partir (MAIL_TRANSPORT=file)
+.mail-outbox/

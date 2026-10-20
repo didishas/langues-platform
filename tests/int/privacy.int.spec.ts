@@ -194,7 +194,7 @@ describe('RGPD : export et effacement d’un élève', () => {
   it('effacement : plus rien de personnel hors factures, Frank intact', async () => {
     const r = await eraseAs(await token('users', 'prof@rgpd.test'), ' EVE@rgpd.test ')
     expect(r.status).toBe(200)
-    expect(r.body.summary).toMatchObject({ submissions: 1, files: 1, futureBookings: 1, assignmentsDeleted: 1, documentsDeleted: 1, trialRequests: 1, invoicesKept: 1 })
+    expect(r.body.summary).toMatchObject({ submissions: 1, files: 1, futureBookings: 1, assignmentsDeleted: 1, documentsDeleted: 1, trialRequests: 1, messages: 2, invoicesKept: 1 })
 
     const after = await payload.findByID({ collection: 'students', id: eve.id })
     expect(after.fullName).toBe(`Ancien élève n°${eve.id}`)
@@ -219,6 +219,7 @@ describe('RGPD : export et effacement d’un élève', () => {
     await expect(payload.findByID({ collection: 'documents', id: ids.docOnlyEve })).rejects.toThrow()
     await expect(payload.findByID({ collection: 'bookings', id: ids.futureBooking })).rejects.toThrow()
     await expect(payload.findByID({ collection: 'trial-requests', id: ids.trial })).rejects.toThrow()
+    expect((await payload.find({ collection: 'outbox', where: { student: { equals: eve.id } } })).totalDocs).toBe(0)
     const pastBooking = await payload.findByID({ collection: 'bookings', id: ids.pastBooking, depth: 0 })
     expect(pastBooking.student).toBe(eve.id)
 

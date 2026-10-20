@@ -1,6 +1,7 @@
 import type { CollectionConfig, Where } from 'payload'
 
 import { isStaffUser, teacherOnly } from '@/access'
+import { prepareInvoiceEmail } from '@/mail/outbox'
 import { paymentWebhookEndpoint, prepareEndpoint, smartExportEndpoint } from '@/billing/endpoints'
 import { createPaymentLink, finalizeOnValidation } from '@/billing/service'
 import { euroAmountFields } from '@/fields'
@@ -91,6 +92,19 @@ export const Invoices: CollectionConfig = {
       },
     ],
     afterChange: [
+      async ({ doc, previousDoc, req, operation }) => {
+        // Facture payée ou annulée : son e-mail encore en attente de validation n'a plus lieu d'être.
+        if (operation === 'update' && ['paid', 'cancelled'].includes(doc.status) && previousDoc?.status !== doc.status) {
+          await req.payload.update({
+            collection: 'outbox',
+            where: { and: [{ invoice: { equals: doc.id } }, { status: { in: ['draft', 'failed'] } }] },
+            data: { status: 'cancelled' },
+            req,
+            overrideAccess: true,
+          })
+        }
+        return doc
+      },
       async ({ doc, req, operation }) => {
         // Effets de la validation (prestations facturées, lien de paiement) : une seule fois,
         // par la requête qui a réellement attribué le numéro.
@@ -120,6 +134,9 @@ export const Invoices: CollectionConfig = {
         } catch (e) {
           req.payload.logger.error({ err: e, msg: 'Lien de paiement non créé' })
         }
+        // Brouillon d'e-mail de la facture : il attend la validation de Catherine dans « Messages à envoyer ».
+        const fresh = await req.payload.findByID({ collection: 'invoices', id: doc.id, depth: 0, req, overrideAccess: true })
+        await prepareInvoiceEmail(req.payload, fresh, req)
         return doc
       },
     ],

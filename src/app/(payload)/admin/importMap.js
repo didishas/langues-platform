@@ -22,6 +22,7 @@ import { UnderlineFeatureClient as UnderlineFeatureClient_e70f5e05f09f93e00b997e
 import { BoldFeatureClient as BoldFeatureClient_e70f5e05f09f93e00b997edb1ef0c864 } from '@payloadcms/richtext-lexical/client'
 import { ItalicFeatureClient as ItalicFeatureClient_e70f5e05f09f93e00b997edb1ef0c864 } from '@payloadcms/richtext-lexical/client'
 import { StudentPrivacy as StudentPrivacy_dafaaa0a105c9b377df28ae8e44cfc4b } from '../../../components/admin/StudentPrivacy'
+import { OutboxSend as OutboxSend_6dddb6362b5a1e91e396e89fff3dcd05 } from '../../../components/admin/OutboxSend'
 import { TeacherDashboard as TeacherDashboard_ab45ceeb4d29fcbe783c2be4d46927be } from '../../../components/admin/TeacherDashboard'
 import { CollectionCards as CollectionCards_f9c02e79a4aed9a3924487c0cd4cafb1 } from '@payloadcms/next/rsc'
 
@@ -51,6 +52,7 @@ export const importMap = {
   "@payloadcms/richtext-lexical/client#BoldFeatureClient": BoldFeatureClient_e70f5e05f09f93e00b997edb1ef0c864,
   "@payloadcms/richtext-lexical/client#ItalicFeatureClient": ItalicFeatureClient_e70f5e05f09f93e00b997edb1ef0c864,
   "/components/admin/StudentPrivacy#StudentPrivacy": StudentPrivacy_dafaaa0a105c9b377df28ae8e44cfc4b,
+  "/components/admin/OutboxSend#OutboxSend": OutboxSend_6dddb6362b5a1e91e396e89fff3dcd05,
   "/components/admin/TeacherDashboard#TeacherDashboard": TeacherDashboard_ab45ceeb4d29fcbe783c2be4d46927be,
   "@payloadcms/next/rsc#CollectionCards": CollectionCards_f9c02e79a4aed9a3924487c0cd4cafb1
 }

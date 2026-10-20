@@ -18,6 +18,7 @@ import { Invoices } from './collections/Invoices'
 import { Languages } from './collections/Languages'
 import { Media } from './collections/Media'
 import { Offers } from './collections/Offers'
+import { Outbox } from './collections/Outbox'
 import { Prestations } from './collections/Prestations'
 import { Slots } from './collections/Slots'
 import { Students } from './collections/Students'
@@ -27,6 +28,7 @@ import { TrialRequests } from './collections/TrialRequests'
 import { Users } from './collections/Users'
 import { Videos } from './collections/Videos'
 import { BillingSettings } from './globals/BillingSettings'
+import { EmailTemplates } from './globals/EmailTemplates'
 import { SiteSettings } from './globals/SiteSettings'
 import { TeachingSettings } from './globals/TeachingSettings'
 import { LOCALES } from './i18n/config'
@@ -68,6 +70,7 @@ export default buildConfig({
     Documents,
     Videos,
     ExerciseAttempts,
+    Outbox,
     Slots,
     Bookings,
     Prestations,
@@ -76,7 +79,7 @@ export default buildConfig({
     Media,
     Users,
   ],
-  globals: [SiteSettings, TeachingSettings, BillingSettings],
+  globals: [SiteSettings, TeachingSettings, BillingSettings, EmailTemplates],
   editor: lexicalEditor(),
   secret: process.env.PAYLOAD_SECRET || '',
   typescript: {

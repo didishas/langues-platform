@@ -71,6 +71,21 @@ Dans la fiche d'un élève, Catherine seule voit deux boutons :
 - **Exporter ses données** : un ZIP avec `donnees.json` (fiche, séances, devoirs rendus, réponses aux exercices, prestations, factures, demandes d'essai) et les fichiers envoyés par l'élève. Jamais de mot de passe ni de session.
 - **Effacer ses données** : après avoir retapé l'e-mail de l'élève (vérifié par le serveur). Refusé tant qu'il reste une prestation non facturée ou une facture non payée. Efface devoirs rendus, réponses aux exercices et leurs fichiers, réservations à venir, demandes d'essai, devoirs et documents destinés à lui seul ; la fiche devient « Ancien élève n°X » sans donnée personnelle ni connexion possible. Gardés : factures (avec le client imprimé dessus) et séances passées, sans nom.
 
+## E-mails : rien ne part sans Catherine
+
+Le site prépare les messages dans Élèves > Messages à envoyer : e-mail de facture quand Catherine valide une facture
+(facturation directe), confirmation quand une séance à venir passe à « confirmée ». Catherine peut aussi écrire un message
+à un élève (ou à son responsable légal). Les textes se règlent dans Réglages > Modèles d'e-mails, en français, anglais et hébreu ;
+l'élève reçoit sa langue.
+
+Rien ne part avant le bouton « Valider et envoyer », réservé à Catherine. Le serveur vérifie au moment d'envoyer : que c'est
+bien elle, que le message n'a pas changé depuis qu'elle l'a relu, que l'adresse est celle de la fiche de l'élève (jamais saisie
+à la main), que la facture est toujours valide et du même montant, et qu'il ne part qu'une fois. Un message parti est gardé
+tel quel ; un e-mail de facture en attente est annulé si la facture est payée ou annulée.
+
+Envoi réel : `MAIL_TRANSPORT=smtp` et les variables `SMTP_*` / `MAIL_FROM` du service choisi par Catherine (SMTP standard).
+En développement, les messages sont écrits dans `.mail-outbox/` au lieu de partir.
+
 ## Comptes de l'équipe
 
 - **Professeure** (Catherine) : tous les droits.
@@ -112,5 +127,7 @@ Le contenu de départ reprend le pitch MotàMot. Ces éléments restent à valid
 
 - RGPD : durées de conservation (factures, devoirs, enregistrements de voix) et textes (politique de confidentialité, consentements) à valider ; aujourd'hui rien n'est effacé automatiquement.
 - Migrations de base de données pour la production (aujourd'hui, schéma aligné automatiquement en développement).
-- Stockage des fichiers hors du serveur (stockage objet) et envoi d'e-mails. Indispensable pour les vidéos : sur le serveur du site, chaque vidéo passe par la mémoire du serveur à l'envoi et occupe son disque.
+- Stockage des fichiers hors du serveur (stockage objet). Indispensable pour les vidéos : sur le serveur du site, chaque vidéo passe par la mémoire du serveur à l'envoi et occupe son disque.
+- Service d'envoi d'e-mails au nom de Catherine (SMTP), adresse d'expédition et domaine vérifiés (SPF/DKIM).
+- Facture en PDF jointe à l'e-mail (aujourd'hui : détails dans le message et facture visible dans l'espace élève).
 - Consentement des élèves à l'enregistrement de leur voix (réponses orales) et durée de conservation de ces enregistrements.

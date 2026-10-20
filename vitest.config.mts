@@ -25,7 +25,7 @@ export default defineConfig({
           setupFiles: ['./vitest.setup.ts'],
           globalSetup: ['./tests/int/globalSetup.ts'],
           include: ['tests/int/**/*.int.spec.ts'],
-          env: { DATABASE_URL: testDatabaseUrl, PAYLOAD_SECRET: 'test-secret' },
+          env: { DATABASE_URL: testDatabaseUrl, PAYLOAD_SECRET: 'test-secret', MAIL_TRANSPORT: 'memory' },
           testTimeout: 60_000,
           hookTimeout: 120_000,
           fileParallelism: false,

@@ -6,6 +6,7 @@ export const LOCK = {
   slotBooking: 1,
   invoiceCounter: 2,
   invoice: 3,
+  outbox: 4,
 } as const
 
 /**

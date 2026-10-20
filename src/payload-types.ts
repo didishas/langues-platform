@@ -79,6 +79,7 @@ export interface Config {
     documents: Document;
     videos: Video;
     'exercise-attempts': ExerciseAttempt;
+    outbox: Outbox;
     slots: Slot;
     bookings: Booking;
     prestations: Prestation;
@@ -104,6 +105,7 @@ export interface Config {
     documents: DocumentsSelect<false> | DocumentsSelect<true>;
     videos: VideosSelect<false> | VideosSelect<true>;
     'exercise-attempts': ExerciseAttemptsSelect<false> | ExerciseAttemptsSelect<true>;
+    outbox: OutboxSelect<false> | OutboxSelect<true>;
     slots: SlotsSelect<false> | SlotsSelect<true>;
     bookings: BookingsSelect<false> | BookingsSelect<true>;
     prestations: PrestationsSelect<false> | PrestationsSelect<true>;
@@ -124,11 +126,13 @@ export interface Config {
     'site-settings': SiteSetting;
     'teaching-settings': TeachingSetting;
     'billing-settings': BillingSetting;
+    'email-templates': EmailTemplate;
   };
   globalsSelect: {
     'site-settings': SiteSettingsSelect<false> | SiteSettingsSelect<true>;
     'teaching-settings': TeachingSettingsSelect<false> | TeachingSettingsSelect<true>;
     'billing-settings': BillingSettingsSelect<false> | BillingSettingsSelect<true>;
+    'email-templates': EmailTemplatesSelect<false> | EmailTemplatesSelect<true>;
   };
   locale: 'fr' | 'en' | 'he';
   widgets: {
@@ -600,74 +604,38 @@ export interface ExerciseAttempt {
   createdAt: string;
 }
 /**
+ * Rien ne part sans vous : relisez, modifiez si besoin, puis « Valider et envoyer ».
+ *
  * This interface was referenced by `Config`'s JSON-Schema
- * via the `definition` "slots".
+ * via the `definition` "outbox".
  */
-export interface Slot {
+export interface Outbox {
   id: number;
-  label?: string | null;
-  start: string;
-  end: string;
-  format?: ('individual' | 'group') | null;
-  capacity?: number | null;
-  status?: ('open' | 'closed') | null;
-  /**
-   * Vide = votre outil par défaut.
-   */
-  visioTool?: ('zoom' | 'meet') | null;
-  /**
-   * Vide = votre lien habituel (Réglages des cours). Visible seulement par les élèves dont la réservation est confirmée.
-   */
-  meetingUrl?: string | null;
-  /**
-   * Laisser vide si le créneau est ouvert à toutes les langues.
-   */
-  language?: (number | null) | Language;
-  updatedAt: string;
-  createdAt: string;
-}
-/**
- * This interface was referenced by `Config`'s JSON-Schema
- * via the `definition` "bookings".
- */
-export interface Booking {
-  id: number;
-  slot: number | Slot;
+  title?: string | null;
   student: number | Student;
-  offer?: (number | null) | Offer;
-  status?: ('requested' | 'confirmed' | 'cancelled') | null;
-  message?: string | null;
-  updatedAt: string;
-  createdAt: string;
-}
-/**
- * This interface was referenced by `Config`'s JSON-Schema
- * via the `definition` "prestations".
- */
-export interface Prestation {
-  id: number;
-  student: number | Student;
-  date: string;
-  offer?: (number | null) | Offer;
-  description: string;
-  quantity: number;
+  recipient?: ('student' | 'guardian') | null;
   /**
-   * En euros
+   * Reprise de la fiche de l’élève.
    */
-  unitPrice: number;
-  unitPriceCents?: number | null;
-  discount?: (number | null) | Discount;
+  to?: string | null;
+  toName?: string | null;
+  subject: string;
+  body: string;
+  kind: 'message' | 'invoice' | 'booking';
   /**
-   * Reprise de la réduction choisie, modifiable au cas par cas.
+   * Pour envoyer, utilisez le bouton « Valider et envoyer ».
    */
-  discountPercent?: number | null;
-  /**
-   * Remplie automatiquement si la formule ou l’élève n’a qu’une langue. Sert au tableau de bord.
-   */
-  language?: (number | null) | Language;
-  booking?: (number | null) | Booking;
-  status?: ('to_invoice' | 'invoiced') | null;
+  status: 'draft' | 'sent' | 'failed' | 'cancelled';
+  locale?: string | null;
   invoice?: (number | null) | Invoice;
+  booking?: (number | null) | Booking;
+  amountCents?: number | null;
+  approvedBy?: (number | null) | User;
+  approvedAt?: string | null;
+  approvedHash?: string | null;
+  sentAt?: string | null;
+  messageId?: string | null;
+  error?: string | null;
   updatedAt: string;
   createdAt: string;
 }
@@ -744,12 +712,73 @@ export interface Invoice {
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
- * via the `definition` "invoice-counters".
+ * via the `definition` "prestations".
  */
-export interface InvoiceCounter {
+export interface Prestation {
   id: number;
-  year: number;
-  last: number;
+  student: number | Student;
+  date: string;
+  offer?: (number | null) | Offer;
+  description: string;
+  quantity: number;
+  /**
+   * En euros
+   */
+  unitPrice: number;
+  unitPriceCents?: number | null;
+  discount?: (number | null) | Discount;
+  /**
+   * Reprise de la réduction choisie, modifiable au cas par cas.
+   */
+  discountPercent?: number | null;
+  /**
+   * Remplie automatiquement si la formule ou l’élève n’a qu’une langue. Sert au tableau de bord.
+   */
+  language?: (number | null) | Language;
+  booking?: (number | null) | Booking;
+  status?: ('to_invoice' | 'invoiced') | null;
+  invoice?: (number | null) | Invoice;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "bookings".
+ */
+export interface Booking {
+  id: number;
+  slot: number | Slot;
+  student: number | Student;
+  offer?: (number | null) | Offer;
+  status?: ('requested' | 'confirmed' | 'cancelled') | null;
+  message?: string | null;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "slots".
+ */
+export interface Slot {
+  id: number;
+  label?: string | null;
+  start: string;
+  end: string;
+  format?: ('individual' | 'group') | null;
+  capacity?: number | null;
+  status?: ('open' | 'closed') | null;
+  /**
+   * Vide = votre outil par défaut.
+   */
+  visioTool?: ('zoom' | 'meet') | null;
+  /**
+   * Vide = votre lien habituel (Réglages des cours). Visible seulement par les élèves dont la réservation est confirmée.
+   */
+  meetingUrl?: string | null;
+  /**
+   * Laisser vide si le créneau est ouvert à toutes les langues.
+   */
+  language?: (number | null) | Language;
   updatedAt: string;
   createdAt: string;
 }
@@ -783,6 +812,17 @@ export interface User {
     | null;
   password?: string | null;
   collection: 'users';
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "invoice-counters".
+ */
+export interface InvoiceCounter {
+  id: number;
+  year: number;
+  last: number;
+  updatedAt: string;
+  createdAt: string;
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
@@ -851,6 +891,10 @@ export interface PayloadLockedDocument {
     | ({
         relationTo: 'exercise-attempts';
         value: number | ExerciseAttempt;
+      } | null)
+    | ({
+        relationTo: 'outbox';
+        value: number | Outbox;
       } | null)
     | ({
         relationTo: 'slots';
@@ -1225,6 +1269,33 @@ export interface ExerciseAttemptsSelect<T extends boolean = true> {
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "outbox_select".
+ */
+export interface OutboxSelect<T extends boolean = true> {
+  title?: T;
+  student?: T;
+  recipient?: T;
+  to?: T;
+  toName?: T;
+  subject?: T;
+  body?: T;
+  kind?: T;
+  status?: T;
+  locale?: T;
+  invoice?: T;
+  booking?: T;
+  amountCents?: T;
+  approvedBy?: T;
+  approvedAt?: T;
+  approvedHash?: T;
+  sentAt?: T;
+  messageId?: T;
+  error?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "slots_select".
  */
 export interface SlotsSelect<T extends boolean = true> {
@@ -1517,6 +1588,23 @@ export interface BillingSetting {
   createdAt?: string | null;
 }
 /**
+ * Repères remplacés automatiquement : {prenom}, {numero}, {montant}, {echeance}, {communication}, {paiement_en_ligne}, {lien_espace}, {date_seance}, {signature}. Laisser vide pour le texte par défaut.
+ *
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "email-templates".
+ */
+export interface EmailTemplate {
+  id: number;
+  signature?: string | null;
+  invoiceSubject?: string | null;
+  invoiceBody?: string | null;
+  invoiceOnlineLine?: string | null;
+  bookingSubject?: string | null;
+  bookingBody?: string | null;
+  updatedAt?: string | null;
+  createdAt?: string | null;
+}
+/**
  * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "site-settings_select".
  */
@@ -1578,6 +1666,21 @@ export interface BillingSettingsSelect<T extends boolean = true> {
   vatRatePercent?: T;
   taxReservePercent?: T;
   vatMention?: T;
+  updatedAt?: T;
+  createdAt?: T;
+  globalType?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "email-templates_select".
+ */
+export interface EmailTemplatesSelect<T extends boolean = true> {
+  signature?: T;
+  invoiceSubject?: T;
+  invoiceBody?: T;
+  invoiceOnlineLine?: T;
+  bookingSubject?: T;
+  bookingBody?: T;
   updatedAt?: T;
   createdAt?: T;
   globalType?: T;

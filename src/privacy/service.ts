@@ -43,7 +43,7 @@ async function collect(payload: Payload, studentId: number, req?: PayloadRequest
   const student = await payload.findByID({ collection: 'students', id: studentId, depth: 0, overrideAccess: true, ...(req ? { req } : {}) }).catch(() => null)
   if (!student) throw new PrivacyError('not_found')
   const mine = { student: { equals: studentId } }
-  const [bookings, submissions, attempts, files, prestations, invoices, assignments, documents, videos] = await Promise.all([
+  const [bookings, submissions, attempts, files, prestations, invoices, assignments, documents, videos, messages] = await Promise.all([
     payload.find({ collection: 'bookings', where: mine, ...q }),
     payload.find({ collection: 'submissions', where: mine, ...q }),
     payload.find({ collection: 'exercise-attempts', where: mine, ...q }),
@@ -53,6 +53,7 @@ async function collect(payload: Payload, studentId: number, req?: PayloadRequest
     payload.find({ collection: 'assignments', where: { students: { equals: studentId } }, ...q }),
     payload.find({ collection: 'documents', where: { sharedWith: { equals: studentId } }, ...q }),
     payload.find({ collection: 'videos', where: { students: { equals: studentId } }, ...q }),
+    payload.find({ collection: 'outbox', where: mine, ...q }),
   ])
   const slotIds = bookings.docs.map((b) => idOf(b.slot)).filter((id): id is number => id !== undefined)
   const slots = slotIds.length ? (await payload.find({ collection: 'slots', where: { id: { in: slotIds } }, ...q })).docs : []
@@ -71,6 +72,7 @@ async function collect(payload: Payload, studentId: number, req?: PayloadRequest
     assignments: assignments.docs,
     documents: documents.docs,
     videos: videos.docs,
+    messages: messages.docs,
     trials,
   }
 }
@@ -101,6 +103,9 @@ export async function exportStudentData(payload: Payload, studentId: number): Pr
     documents: d.documents.map((doc) => ({ id: doc.id, title: doc.title, filename: doc.filename })),
     videos: d.videos.map((v) => ({ id: v.id, title: v.title })),
     trialRequests: d.trials,
+    emails: d.messages
+      .filter((m) => m.status === 'sent')
+      .map((m) => ({ to: m.to, subject: m.subject, body: m.body, sentAt: m.sentAt })),
   }
 
   const staticDir = payload.collections['submission-files'].config.upload?.staticDir as string
@@ -129,6 +134,7 @@ export type ErasureSummary = {
   assignmentsDeleted: number
   documentsDeleted: number
   trialRequests: number
+  messages: number
   invoicesKept: number
 }
 
@@ -197,6 +203,9 @@ export async function eraseStudentData(payload: Payload, studentId: number, conf
       await payload.update({ collection: 'videos', id: v.id, data: { students: others }, ...del })
     }
     for (const t of d.trials) await payload.delete({ collection: 'trial-requests', id: t.id, ...del })
+    // Messages préparés ou envoyés : leur texte contient nom et adresse. Les factures, elles, restent.
+    req.context.privacyErase = true
+    for (const m of d.messages) await payload.delete({ collection: 'outbox', id: m.id, ...del })
 
     await payload.update({
       collection: 'students',
@@ -235,6 +244,7 @@ export async function eraseStudentData(payload: Payload, studentId: number, conf
       assignmentsDeleted,
       documentsDeleted,
       trialRequests: d.trials.length,
+      messages: d.messages.length,
       invoicesKept: d.invoices.length,
     }
   } catch (e) {

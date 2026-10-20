@@ -248,6 +248,13 @@ function Todo({ d, t, locale, admin }: { d: Dashboard; t: DashboardText; locale:
       </li>,
     )
   }
+  if (d.todo.messagesToApprove > 0) {
+    items.push(
+      <li key="messages">
+        <a href={`${admin}/collections/outbox?where[status][in]=draft,failed`}>{t.todo.messages(d.todo.messagesToApprove)}</a>
+      </li>,
+    )
+  }
   if (d.todo.oralToReview > 0) {
     items.push(
       <li key="oral">

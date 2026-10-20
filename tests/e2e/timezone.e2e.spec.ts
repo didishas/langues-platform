@@ -25,6 +25,8 @@ test.beforeAll(async () => {
 test.afterAll(async () => {
   if (!data) return
   const p = await payload()
+  // La confirmation de séance a préparé un brouillon d'e-mail : il référence l'élève.
+  await p.delete({ collection: 'outbox', where: { student: { equals: data.studentId } } })
   await p.delete({ collection: 'bookings', id: data.bookingId })
   await p.delete({ collection: 'slots', id: data.slotId })
   await p.delete({ collection: 'students', id: data.studentId })
